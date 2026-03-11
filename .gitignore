@@ -17,4 +17,6 @@ Thumbs.db
 .env.local
 
 # Arquivos .MD (Documentação)
-*.md
+PLANEJAMENTO.md
+GUIA-INICIANTE.md   
+CONFIG-EMAIL.md
