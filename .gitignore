@@ -15,3 +15,6 @@ Thumbs.db
 # Variáveis de ambiente (senhas, chaves)
 .env
 .env.local
+
+# Arquivos .MD (Documentação)
+*.md
