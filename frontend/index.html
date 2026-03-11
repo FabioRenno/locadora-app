@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Locadora App - Conectando locadores e motoristas</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="cabecalho">
+    <div id="usuario-logado" class="usuario-logado" style="display: none;">
+      <span class="usuario-info">Logado como: <strong id="usuario-nome"></strong> (<span id="usuario-tipo"></span>)</span>
+      <a href="/api/logout" class="usuario-sair">Sair</a>
+    </div>
+    <h1>Locadora App</h1>
+    <p class="subtitulo">Conectando locadores e motoristas de aplicativo</p>
+  </header>
+
+  <main class="conteudo">
+    <div id="msg-sucesso" class="msg-sucesso" style="display: none;"></div>
+    <section class="chamada">
+      <p>O que você procura?</p>
+    </section>
+
+    <nav class="botoes-acao">
+      <a href="/cadastro-locador.html" class="botao botao-locador">
+        <span class="icone">🏢</span>
+        <span>Sou Locador</span>
+        <span class="descricao">Publicar veículos ou entrar na minha conta</span>
+      </a>
+      
+      <a href="/cadastro-motorista.html" class="botao botao-motorista">
+        <span class="icone">🚗</span>
+        <span>Sou Motorista</span>
+        <span class="descricao">Encontrar veículos para alugar</span>
+      </a>
+      
+      <a href="/veiculos.html" class="botao botao-ver">
+        <span class="icone">🔍</span>
+        <span>Ver Veículos</span>
+        <span class="descricao">Explorar anúncios disponíveis</span>
+      </a>
+    </nav>
+  </main>
+
+  <footer class="rodape">
+    <p>Oferta e demanda no mesmo lugar.</p>
+  </footer>
+
+  <script>
+    async function carregarSessao() {
+      try {
+        const res = await fetch('/api/session', { credentials: 'same-origin' });
+        const sess = await res.json();
+        const bar = document.getElementById('usuario-logado');
+        if (sess.logado && sess.tipo) {
+          document.getElementById('usuario-nome').textContent = sess.nome || sess.tipo;
+          document.getElementById('usuario-tipo').textContent = sess.tipo === 'locador' ? 'Locador' : 'Motorista';
+          bar.style.display = 'flex';
+        }
+      } catch (err) {
+        console.error('Erro ao verificar sessão:', err);
+      }
+    }
+    carregarSessao();
+
+    const params = new URLSearchParams(window.location.search);
+    const cadastro = params.get('cadastro');
+    const msg = document.getElementById('msg-sucesso');
+    if (cadastro === 'ok') {
+      msg.innerHTML = '✓ Cadastro de locador realizado! <a href="/login-locador">Entrar</a>';
+      msg.style.display = 'block';
+    } else if (cadastro === 'motorista') {
+      msg.innerHTML = '✓ Cadastro de motorista realizado! <a href="/login-motorista">Entrar</a>';
+      msg.style.display = 'block';
+    }
+  </script>
+</body>
+</html>

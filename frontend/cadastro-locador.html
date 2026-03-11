@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro de Locador - Locadora App</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="cabecalho">
+    <h1>Cadastro de Locador</h1>
+    <p class="subtitulo">Preencha os dados da sua empresa para publicar veículos</p>
+  </header>
+
+  <main class="conteudo">
+    <p class="voltar"><a href="/">← Voltar para a página inicial</a> | <a href="/login-locador">Já tem conta? Entrar</a></p>
+
+    <!--
+      PARA QUE SERVE O ATRIBUTO "name" EM CADA <input>?
+      =================================================
+      O "name" é como a ETIQUETA de cada dado. Quando o usuário clica em
+      "Enviar", o navegador agrupa: nome do campo + valor digitado.
+      Exemplo: { "razao_social": "Locadora ABC", "cnpj": "12345678000199" }
+      O Backend recebe isso e sabe exatamente onde salvar cada informação.
+      Sem o "name", o Backend receberia dados "sem identificação" — 
+      não saberia o que é cada valor. É a "chave" que liga o formulário ao banco.
+    -->
+
+    <form class="formulario formulario-locador" action="/api/locadores" method="POST">
+      <fieldset class="grupo-campos">
+        <legend>Dados da empresa</legend>
+
+        <div class="campo">
+          <label for="razao_social">Razão Social *</label>
+          <input type="text" id="razao_social" name="razao_social" required
+                 placeholder="Nome oficial da empresa"
+                 maxlength="150">
+          <!-- name="razao_social" → Backend recebe esse identificador + valor -->
+        </div>
+
+        <div class="campo">
+          <label for="nome_fantasia">Nome Fantasia</label>
+          <input type="text" id="nome_fantasia" name="nome_fantasia"
+                 placeholder="Nome comercial (opcional)"
+                 maxlength="150">
+          <!-- name="nome_fantasia" → Backend sabe onde guardar o nome fantasia -->
+        </div>
+
+        <div class="campo">
+          <label for="cnpj">CNPJ *</label>
+          <input type="text" id="cnpj" name="cnpj" required
+                 placeholder="Apenas números (14 dígitos)"
+                 pattern="[0-9]{14}"
+                 maxlength="14"
+                 inputmode="numeric">
+          <!-- name="cnpj" → Backend identifica e valida o documento -->
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo-campos">
+        <legend>Contato</legend>
+
+        <div class="campo">
+          <label for="email">Email *</label>
+          <input type="email" id="email" name="email" required
+                 placeholder="contato@empresa.com.br">
+          <!-- name="email" → Backend usa para login e notificações -->
+        </div>
+
+        <div class="campo">
+          <label for="telefone">Telefone *</label>
+          <input type="tel" id="telefone" name="telefone" required
+                 placeholder="(11) 3333-4444">
+          <!-- name="telefone" → Backend armazena para contato geral -->
+        </div>
+
+        <div class="campo">
+          <label for="whatsapp">WhatsApp *</label>
+          <input type="tel" id="whatsapp" name="whatsapp" required
+                 placeholder="(11) 99999-8888">
+          <!-- name="whatsapp" → Canal principal para motoristas entrarem em contato -->
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo-campos">
+        <legend>Endereço</legend>
+
+        <div class="campo">
+          <label for="endereco">Endereço completo *</label>
+          <input type="text" id="endereco" name="endereco" required
+                 placeholder="Rua, número, complemento">
+          <!-- name="endereco" → Backend salva o endereço da sede -->
+        </div>
+
+        <div class="linha-campos">
+          <div class="campo">
+            <label for="cidade">Cidade *</label>
+            <input type="text" id="cidade" name="cidade" required
+                   placeholder="Ex: São Paulo">
+            <!-- name="cidade" → Backend usa para filtros e busca -->
+          </div>
+          <div class="campo">
+            <label for="estado">Estado (UF) *</label>
+            <input type="text" id="estado" name="estado" required
+                   placeholder="Ex: SP"
+                   maxlength="2"
+                   pattern="[A-Za-z]{2}">
+            <!-- name="estado" → Backend complementa localização -->
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="cep">CEP *</label>
+          <input type="text" id="cep" name="cep" required
+                 placeholder="00000-000"
+                 maxlength="9"
+                 inputmode="numeric">
+          <!-- name="cep" → Backend valida e completa endereço (se integrar API) -->
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo-campos">
+        <legend>Informações adicionais</legend>
+
+        <div class="campo">
+          <label for="area_atuacao">Área de atuação</label>
+          <input type="text" id="area_atuacao" name="area_atuacao"
+                 placeholder="Ex: São Paulo capital e região">
+          <!-- name="area_atuacao" → Backend exibe para motoristas (opcional) -->
+        </div>
+
+        <div class="campo">
+          <label for="horario_atendimento">Horário de atendimento</label>
+          <input type="text" id="horario_atendimento" name="horario_atendimento"
+                 placeholder="Ex: Seg-Sex 8h-18h">
+          <!-- name="horario_atendimento" → Backend exibe para motoristas (opcional) -->
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo-campos">
+        <legend>Segurança</legend>
+
+        <div class="campo">
+          <label for="senha">Senha *</label>
+          <input type="password" id="senha" name="senha" required
+                 placeholder="Mínimo 6 caracteres"
+                 minlength="6">
+          <!-- name="senha" → Backend vai criptografar e salvar (NUNCA em texto puro) -->
+        </div>
+      </fieldset>
+
+      <div class="acoes-formulario">
+        <button type="submit" class="botao-enviar">Cadastrar</button>
+      </div>
+    </form>
+  </main>
+</body>
+</html>

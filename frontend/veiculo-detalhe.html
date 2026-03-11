@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalhe do Veículo - Locadora App</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="cabecalho">
+    <h1 id="titulo-veiculo">Carregando...</h1>
+    <p class="subtitulo" id="subtitulo-veiculo"></p>
+  </header>
+
+  <main class="conteudo">
+    <p class="voltar"><a href="/veiculos.html">← Voltar para listagem</a></p>
+
+    <div id="conteudo" class="detalhe-veiculo">
+      <p class="carregando">Carregando...</p>
+    </div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    let motoristaLogado = false;
+
+    async function carregarDetalhe() {
+      const container = document.getElementById('conteudo');
+      if (!id) {
+        container.innerHTML = '<p class="msg-erro">Veículo não especificado.</p>';
+        return;
+      }
+
+      try {
+        const sessRes = await fetch('/api/session', { credentials: 'same-origin' });
+        const sess = await sessRes.json();
+        motoristaLogado = sess.tipo === 'motorista';
+
+        const res = await fetch(`/api/veiculos/${id}`);
+        if (!res.ok) {
+          container.innerHTML = '<p class="msg-erro">Veículo não encontrado.</p>';
+          return;
+        }
+
+        const v = await res.json();
+
+        document.getElementById('titulo-veiculo').textContent = `${v.marca} ${v.modelo} (${v.ano})`;
+        document.getElementById('subtitulo-veiculo').textContent = v.locador_nome;
+
+        container.innerHTML = `
+          <div class="card-detalhe">
+            <div class="detalhe-foto">
+              ${v.foto_url
+                ? `<img src="${escapeAttr(v.foto_url)}" alt="${escapeHtml(v.marca)} ${escapeHtml(v.modelo)}">`
+                : '<div class="sem-foto grande">🚗</div>'}
+            </div>
+            <div class="detalhe-info">
+              <h2>${escapeHtml(v.marca)} ${escapeHtml(v.modelo)} (${v.ano})</h2>
+              <p class="status-badge ${v.disponivel ? 'disponivel' : 'indisponivel'}">${v.disponivel ? 'Disponível' : 'Indisponível'}</p>
+
+              <h3>Valores</h3>
+              <p><strong>Semanal:</strong> R$ ${formatarMoeda(v.preco_semanal)}</p>
+              ${v.preco_diaria ? `<p><strong>Diária:</strong> R$ ${formatarMoeda(v.preco_diaria)}</p>` : ''}
+              <p><strong>Caução:</strong> R$ ${formatarMoeda(v.valor_caucao)}</p>
+
+              <h3>Informações</h3>
+              <p><strong>Placa:</strong> ${escapeHtml(v.placa)}</p>
+              <p><strong>Cor:</strong> ${escapeHtml(v.cor)}</p>
+              <p><strong>Manutenção:</strong> ${escapeHtml(v.responsabilidade_manutencao)}</p>
+              <p><strong>Local de retirada:</strong> ${escapeHtml(v.local_retirada)}</p>
+
+              <h3>Contato (Locador)</h3>
+              <p><strong>${escapeHtml(v.locador_nome)}</strong></p>
+              ${v.locador_whatsapp ? `<p><a href="https://wa.me/55${v.locador_whatsapp.replace(/\D/g, '')}" class="whatsapp" target="_blank">📱 WhatsApp</a></p>` : ''}
+
+              ${v.observacoes ? `<h3>Observações</h3><p>${escapeHtml(v.observacoes)}</p>` : ''}
+              ${motoristaLogado ? `<div class="acao-interesse"><button type="button" id="btn-interesse" class="botao-enviar">Tenho interesse</button><p id="msg-interesse" class="msg-interesse"></p></div>` : ''}
+            </div>
+          </div>
+        `;
+
+        if (motoristaLogado) {
+          document.getElementById('btn-interesse').addEventListener('click', manifestarInteresse);
+        }
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = '<p class="msg-erro">Erro ao carregar dados.</p>';
+      }
+    }
+
+    function escapeHtml(s) {
+      if (!s) return '';
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    function escapeAttr(s) {
+      if (!s) return '';
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function formatarMoeda(n) {
+      return Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    }
+
+    async function manifestarInteresse() {
+      const btn = document.getElementById('btn-interesse');
+      const msg = document.getElementById('msg-interesse');
+      btn.disabled = true;
+      msg.textContent = '';
+      try {
+        const res = await fetch('/api/interesses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ veiculo_id: id }),
+          credentials: 'same-origin'
+        });
+        const data = await res.json();
+        if (res.ok && data.sucesso) {
+          msg.textContent = data.mensagem;
+          msg.className = 'msg-interesse sucesso';
+          btn.textContent = 'Interesse registrado ✓';
+        } else {
+          msg.textContent = data.erro || 'Erro ao registrar interesse.';
+          msg.className = 'msg-interesse erro';
+          btn.disabled = false;
+        }
+      } catch (err) {
+        msg.textContent = 'Erro de conexão. Tente novamente.';
+        msg.className = 'msg-interesse erro';
+        btn.disabled = false;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', carregarDetalhe);
+  </script>
+</body>
+</html>

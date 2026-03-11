@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meus Veículos - Locadora App</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="cabecalho cabecalho-painel">
+    <h1>Meus Veículos</h1>
+    <p class="subtitulo">Gerencie seus anúncios de locação</p>
+    <p class="sair"><a href="/api/logout">Sair</a></p>
+  </header>
+
+  <main class="conteudo">
+    <p class="voltar">
+      <a href="/painel-locador">← Voltar ao painel</a>
+      | <a href="/veiculo-form.html" class="destaque">+ Adicionar veículo</a>
+    </p>
+
+    <div id="msg" class="msg-escondida"></div>
+    <div id="lista-veiculos" class="lista-veiculos">
+      <p class="carregando">Carregando...</p>
+    </div>
+  </main>
+
+  <script>
+    // Busca os veículos do locador logado na API
+    async function carregarVeiculos() {
+      const lista = document.getElementById('lista-veiculos');
+      try {
+        const res = await fetch('/api/veiculos/meus', { credentials: 'same-origin' });
+        if (res.status === 401 || res.redirected) {
+          window.location.href = '/login-locador?erro=entrar';
+          return;
+        }
+        const veiculos = await res.json();
+
+        if (veiculos.length === 0) {
+          lista.innerHTML = `
+            <div class="card-vazio">
+              <p>Você ainda não cadastrou nenhum veículo.</p>
+              <p><a href="/veiculo-form.html" class="botao botao-locador">+ Adicionar seu primeiro veículo</a></p>
+            </div>
+          `;
+          return;
+        }
+
+        lista.innerHTML = veiculos.map(v => `
+          <article class="card-veiculo">
+            <div class="card-veiculo-info">
+              <h3>${escapeHtml(v.marca)} ${escapeHtml(v.modelo)} (${v.ano})</h3>
+              <p class="detalhe">Placa: ${escapeHtml(v.placa)} | Cor: ${escapeHtml(v.cor)}</p>
+              <p class="preco">R$ ${formatarMoeda(v.preco_semanal)}/semana</p>
+              <p class="status">${v.disponivel ? 'Disponível' : 'Indisponível'}</p>
+            </div>
+            <div class="card-veiculo-acoes">
+              <a href="/veiculo-form.html?id=${v.id}" class="botao-menor botao-editar">Editar</a>
+              <button type="button" class="botao-menor botao-excluir" data-id="${v.id}">Excluir</button>
+            </div>
+          </article>
+        `).join('');
+
+        // Eventos de exclusão
+        lista.querySelectorAll('.botao-excluir').forEach(btn => {
+          btn.addEventListener('click', () => excluirVeiculo(btn.dataset.id));
+        });
+
+      } catch (err) {
+        console.error(err);
+        lista.innerHTML = '<p class="msg-erro">Erro ao carregar veículos. <a href="/painel-locador">Voltar ao painel</a></p>';
+      }
+    }
+
+    async function excluirVeiculo(id) {
+      if (!confirm('Tem certeza que deseja excluir este veículo?')) return;
+      try {
+        const res = await fetch(`/api/veiculos/${id}`, {
+          method: 'DELETE',
+          credentials: 'same-origin'
+        });
+        const data = await res.json();
+        if (res.ok && data.sucesso) {
+          mostrarMsg('Veículo excluído.', 'sucesso');
+          carregarVeiculos();
+        } else {
+          mostrarMsg(data.erro || 'Erro ao excluir.', 'erro');
+        }
+      } catch (err) {
+        mostrarMsg('Erro ao excluir veículo.', 'erro');
+      }
+    }
+
+    function mostrarMsg(texto, tipo) {
+      const msg = document.getElementById('msg');
+      msg.textContent = texto;
+      msg.className = tipo === 'sucesso' ? 'msg-sucesso' : 'msg-erro';
+      msg.classList.remove('msg-escondida');
+      setTimeout(() => msg.classList.add('msg-escondida'), 4000);
+    }
+
+    function escapeHtml(s) {
+      if (!s) return '';
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    function formatarMoeda(n) {
+      return Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    }
+
+    document.addEventListener('DOMContentLoaded', carregarVeiculos);
+  </script>
+</body>
+</html>

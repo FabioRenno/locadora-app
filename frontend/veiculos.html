@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Veículos disponíveis - Locadora App</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="cabecalho">
+    <h1>Veículos disponíveis</h1>
+    <p class="subtitulo">Encontre o carro ideal para trabalhar com app</p>
+  </header>
+
+  <main class="conteudo">
+    <p class="voltar"><a href="/">← Voltar para a página inicial</a></p>
+
+    <div id="lista-veiculos" class="lista-veiculos-publica">
+      <p class="carregando">Carregando veículos...</p>
+    </div>
+  </main>
+
+  <script>
+    let motoristaLogado = false;
+
+    async function carregarVeiculos() {
+      const lista = document.getElementById('lista-veiculos');
+      try {
+        // Verifica se o motorista está logado (botão "Ver detalhes" só aparece para motorista logado)
+        const sessRes = await fetch('/api/session', { credentials: 'same-origin' });
+        const sess = await sessRes.json();
+        motoristaLogado = sess.tipo === 'motorista';
+
+        const res = await fetch('/api/veiculos');
+        const veiculos = await res.json();
+
+        if (veiculos.length === 0) {
+          lista.innerHTML = '<p class="sem-veiculos">Nenhum veículo cadastrado ainda. Em breve haverá ofertas aqui.</p>';
+          return;
+        }
+
+        lista.innerHTML = veiculos.map(v => `
+          <article class="card-veiculo-publico">
+            <div class="card-veiculo-foto">
+              ${v.foto_url
+                ? `<img src="${escapeAttr(v.foto_url)}" alt="${escapeHtml(v.marca)} ${escapeHtml(v.modelo)}">`
+                : '<div class="sem-foto">🚗</div>'}
+            </div>
+            <div class="card-veiculo-dados">
+              <h3>${escapeHtml(v.marca)} ${escapeHtml(v.modelo)} (${v.ano})</h3>
+              <p class="detalhe">${escapeHtml(v.cor)} | Placa: ${escapeHtml(v.placa)}</p>
+              <p class="preco">R$ ${formatarMoeda(v.preco_semanal)}/semana</p>
+              ${v.preco_diaria ? `<p class="preco-diaria">R$ ${formatarMoeda(v.preco_diaria)}/dia</p>` : ''}
+              <p class="caução">Caução: R$ ${formatarMoeda(v.valor_caucao)}</p>
+              <p class="locador">${escapeHtml(v.locador_nome)}</p>
+              <p class="status-badge ${v.disponivel ? 'disponivel' : 'indisponivel'}">${v.disponivel ? 'Disponível' : 'Indisponível'}</p>
+              ${motoristaLogado ? `<a href="/veiculo-detalhe.html?id=${v.id}" class="botao botao-ver">Ver detalhes</a>` : ''}
+            </div>
+          </article>
+        `).join('');
+
+      } catch (err) {
+        console.error(err);
+        lista.innerHTML = '<p class="msg-erro">Erro ao carregar veículos.</p>';
+      }
+    }
+
+    function escapeHtml(s) {
+      if (!s) return '';
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    function escapeAttr(s) {
+      if (!s) return '';
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function formatarMoeda(n) {
+      return Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    }
+
+    document.addEventListener('DOMContentLoaded', carregarVeiculos);
+  </script>
+</body>
+</html>

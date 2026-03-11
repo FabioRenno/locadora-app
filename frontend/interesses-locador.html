@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interesses recebidos - Locadora App</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="cabecalho cabecalho-painel">
+    <h1>Interesses recebidos</h1>
+    <p class="subtitulo">Motoristas que demonstraram interesse nos seus veículos</p>
+    <p class="sair"><a href="/api/logout">Sair</a></p>
+  </header>
+
+  <main class="conteudo">
+    <p class="voltar"><a href="/painel-locador">← Voltar ao painel</a></p>
+
+    <div id="lista-interesses" class="lista-interesses">
+      <p class="carregando">Carregando...</p>
+    </div>
+  </main>
+
+  <script>
+    async function carregarInteresses() {
+      const lista = document.getElementById('lista-interesses');
+      try {
+        const res = await fetch('/api/interesses', { credentials: 'same-origin' });
+        if (res.status === 401 || res.redirected) {
+          window.location.href = '/login-locador?erro=entrar';
+          return;
+        }
+        const interesses = await res.json();
+
+        if (interesses.length === 0) {
+          lista.innerHTML = '<div class="card-vazio"><p>Nenhum motorista manifestou interesse nos seus veículos ainda.</p><p>Os interesses aparecerão aqui quando um motorista logado clicar em "Tenho interesse" na página de detalhe de um veículo seu.</p></div>';
+          return;
+        }
+
+        lista.innerHTML = interesses.map(i => `
+          <article class="card-interesse" data-id="${i.id}">
+            <div class="card-interesse-cabecalho">
+              <div>
+                <h3>${escapeHtml(i.veiculo.marca)} ${escapeHtml(i.veiculo.modelo)} (${escapeHtml(i.veiculo.placa)})</h3>
+                <p class="motorista-nome">${escapeHtml(i.motorista.nome_completo)}</p>
+                <p class="data-interesse">${formatarData(i.criado_em)}</p>
+              </div>
+              <button type="button" class="botao-expandir" aria-expanded="false">Ver dados do motorista ▼</button>
+            </div>
+            <div class="card-interesse-detalhes" hidden>
+              <h4>Dados para checagem (Serasa/SPC)</h4>
+              <ul>
+                <li><strong>CPF:</strong> ${formatarCpf(i.motorista.cpf)}</li>
+                <li><strong>RG:</strong> ${escapeHtml(i.motorista.rg)}</li>
+                <li><strong>Data de nascimento:</strong> ${escapeHtml(i.motorista.data_nascimento)}</li>
+              </ul>
+              <h4>Contato</h4>
+              <ul>
+                <li><strong>Email:</strong> ${escapeHtml(i.motorista.email)}</li>
+                <li><strong>Telefone:</strong> ${escapeHtml(i.motorista.telefone)}</li>
+                <li><strong>WhatsApp:</strong> <a href="https://wa.me/55${i.motorista.whatsapp.replace(/\D/g, '')}" class="whatsapp" target="_blank">${escapeHtml(i.motorista.whatsapp)}</a></li>
+              </ul>
+              <h4>CNH</h4>
+              <ul>
+                <li><strong>Número:</strong> ${escapeHtml(i.motorista.numero_cnh)}</li>
+                <li><strong>Categoria:</strong> ${escapeHtml(i.motorista.categoria_cnh)}</li>
+                <li><strong>Validade:</strong> ${escapeHtml(i.motorista.validade_cnh)}</li>
+              </ul>
+              <h4>Endereço</h4>
+              <ul>
+                ${i.motorista.endereco ? `<li><strong>Endereço completo:</strong> ${escapeHtml(i.motorista.endereco)}</li>` : ''}
+                ${i.motorista.cep ? `<li><strong>CEP:</strong> ${escapeHtml(formatarCep(i.motorista.cep))}</li>` : ''}
+                <li><strong>Cidade/Estado:</strong> ${escapeHtml(i.motorista.cidade || '')} - ${escapeHtml(i.motorista.estado || '')}</li>
+              </ul>
+            </div>
+          </article>
+        `).join('');
+
+        lista.querySelectorAll('.botao-expandir').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const card = btn.closest('.card-interesse');
+            const detalhes = card.querySelector('.card-interesse-detalhes');
+            const expanded = detalhes.hidden;
+            detalhes.hidden = !expanded;
+            btn.setAttribute('aria-expanded', !expanded);
+            btn.textContent = expanded ? 'Ocultar dados ▲' : 'Ver dados do motorista ▼';
+          });
+        });
+      } catch (err) {
+        console.error(err);
+        lista.innerHTML = '<p class="msg-erro">Erro ao carregar interesses.</p>';
+      }
+    }
+
+    function escapeHtml(s) {
+      if (!s) return '';
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    function formatarData(iso) {
+      if (!iso) return '-';
+      const d = new Date(iso);
+      return d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+    }
+
+    function formatarCep(cep) {
+      if (!cep) return '';
+      const n = String(cep).replace(/\D/g, '');
+      if (n.length === 8) return n.replace(/(\d{5})(\d{3})/, '$1-$2');
+      return cep;
+    }
+
+    function formatarCpf(cpf) {
+      if (!cpf) return '';
+      const n = String(cpf).replace(/\D/g, '');
+      if (n.length !== 11) return cpf;
+      return n.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+
+    document.addEventListener('DOMContentLoaded', carregarInteresses);
+  </script>
+</body>
+</html>

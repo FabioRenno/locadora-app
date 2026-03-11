@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastrar/Editar Veículo - Locadora App</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="cabecalho cabecalho-painel">
+    <h1 id="titulo-pagina">Cadastrar Veículo</h1>
+    <p class="subtitulo">Preencha os dados do veículo para publicar</p>
+    <p class="sair"><a href="/api/logout">Sair</a></p>
+  </header>
+
+  <main class="conteudo">
+    <p class="voltar"><a href="/meus-veiculos.html">← Voltar para Meus Veículos</a></p>
+
+    <div id="msg" class="msg-escondida"></div>
+
+    <form id="form-veiculo" class="formulario formulario-veiculo">
+      <fieldset class="grupo-campos">
+        <legend>Identificação</legend>
+        <div class="linha-campos">
+          <div class="campo">
+            <label for="marca">Marca *</label>
+            <input type="text" id="marca" name="marca" required placeholder="Ex: Fiat, Volkswagen">
+          </div>
+          <div class="campo">
+            <label for="modelo">Modelo *</label>
+            <input type="text" id="modelo" name="modelo" required placeholder="Ex: Argo, Voyage">
+          </div>
+        </div>
+        <div class="linha-campos">
+          <div class="campo">
+            <label for="ano">Ano *</label>
+            <input type="number" id="ano" name="ano" required min="1990" max="2030" placeholder="2023">
+          </div>
+          <div class="campo">
+            <label for="placa">Placa *</label>
+            <input type="text" id="placa" name="placa" required placeholder="ABC1D23" maxlength="7">
+          </div>
+          <div class="campo">
+            <label for="cor">Cor *</label>
+            <input type="text" id="cor" name="cor" required placeholder="Ex: Prata">
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo-campos">
+        <legend>Valores (R$)</legend>
+        <div class="linha-campos">
+          <div class="campo">
+            <label for="preco_diaria">Preço diária</label>
+            <input type="number" id="preco_diaria" name="preco_diaria" step="0.01" min="0" placeholder="Opcional">
+          </div>
+          <div class="campo">
+            <label for="preco_semanal">Preço semanal *</label>
+            <input type="number" id="preco_semanal" name="preco_semanal" required step="0.01" min="0" placeholder="Ex: 500">
+          </div>
+        </div>
+        <div class="campo">
+          <label for="valor_caucao">Valor caução (depósito de segurança) *</label>
+          <input type="number" id="valor_caucao" name="valor_caucao" required step="0.01" min="0" placeholder="Ex: 1000">
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo-campos">
+        <legend>Responsabilidade e local</legend>
+        <div class="campo">
+          <label for="responsabilidade_manutencao">Responsabilidade pela manutenção *</label>
+          <select id="responsabilidade_manutencao" name="responsabilidade_manutencao" required>
+            <option value="">Selecione</option>
+            <option value="Locador">Locador (eu arco com custos)</option>
+            <option value="Motorista">Motorista (ele arca com custos)</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="local_retirada">Local de retirada *</label>
+          <input type="text" id="local_retirada" name="local_retirada" required placeholder="Endereço onde o motorista busca o carro">
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo-campos">
+        <legend>Outras informações</legend>
+        <div class="campo">
+          <label for="foto_url">URL da foto (opcional)</label>
+          <input type="url" id="foto_url" name="foto_url" placeholder="https://exemplo.com/foto.jpg">
+        </div>
+        <div class="campo campo-checkbox">
+          <label>
+            <input type="checkbox" id="disponivel" name="disponivel" checked>
+            Veículo disponível para locação
+          </label>
+        </div>
+        <div class="campo">
+          <label for="observacoes">Observações</label>
+          <textarea id="observacoes" name="observacoes" rows="4" placeholder="Ar condicionado, combustível, etc."></textarea>
+        </div>
+      </fieldset>
+
+      <div class="acoes-formulario">
+        <button type="submit" class="botao-enviar" id="btn-submit">Salvar</button>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const idVeiculo = params.get('id');
+    const isEdicao = !!idVeiculo;
+
+    // Se for edição, carrega os dados do veículo
+    if (isEdicao) {
+      document.getElementById('titulo-pagina').textContent = 'Editar Veículo';
+      carregarVeiculo(idVeiculo);
+    }
+
+    async function carregarVeiculo(id) {
+      try {
+        const res = await fetch(`/api/veiculos/${id}`, { credentials: 'same-origin' });
+        if (!res.ok) {
+          mostrarMsg('Veículo não encontrado.', 'erro');
+          return;
+        }
+        const v = await res.json();
+
+        // Preenche o formulário (verifica se o veículo é do locador - a API /veiculos/:id é pública, mas podemos chamar /meus para garantir)
+        const meusRes = await fetch('/api/veiculos/meus', { credentials: 'same-origin' });
+        const meus = await meusRes.json();
+        const veiculo = meus.find(m => m.id === parseInt(id, 10)) || v;
+
+        document.getElementById('marca').value = veiculo.marca;
+        document.getElementById('modelo').value = veiculo.modelo;
+        document.getElementById('ano').value = veiculo.ano;
+        document.getElementById('placa').value = veiculo.placa;
+        document.getElementById('cor').value = veiculo.cor;
+        document.getElementById('preco_diaria').value = veiculo.preco_diaria || '';
+        document.getElementById('preco_semanal').value = veiculo.preco_semanal;
+        document.getElementById('valor_caucao').value = veiculo.valor_caucao;
+        document.getElementById('responsabilidade_manutencao').value = veiculo.responsabilidade_manutencao;
+        document.getElementById('local_retirada').value = veiculo.local_retirada;
+        document.getElementById('foto_url').value = veiculo.foto_url || '';
+        document.getElementById('disponivel').checked = veiculo.disponivel === 1;
+        document.getElementById('observacoes').value = veiculo.observacoes || '';
+      } catch (err) {
+        console.error(err);
+        mostrarMsg('Erro ao carregar veículo.', 'erro');
+      }
+    }
+
+    document.getElementById('form-veiculo').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const btn = document.getElementById('btn-submit');
+      btn.disabled = true;
+
+      const dados = {
+        marca: document.getElementById('marca').value.trim(),
+        modelo: document.getElementById('modelo').value.trim(),
+        ano: document.getElementById('ano').value,
+        placa: document.getElementById('placa').value.trim().toUpperCase(),
+        cor: document.getElementById('cor').value.trim(),
+        preco_diaria: document.getElementById('preco_diaria').value || null,
+        preco_semanal: document.getElementById('preco_semanal').value,
+        valor_caucao: document.getElementById('valor_caucao').value,
+        responsabilidade_manutencao: document.getElementById('responsabilidade_manutencao').value,
+        local_retirada: document.getElementById('local_retirada').value.trim(),
+        foto_url: document.getElementById('foto_url').value.trim() || null,
+        disponivel: document.getElementById('disponivel').checked,
+        observacoes: document.getElementById('observacoes').value.trim() || null
+      };
+
+      try {
+        const url = isEdicao ? `/api/veiculos/${idVeiculo}` : '/api/veiculos';
+        const method = isEdicao ? 'PUT' : 'POST';
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dados),
+          credentials: 'same-origin'
+        });
+
+        const data = await res.json();
+
+        if (res.ok && (data.sucesso || data.id)) {
+          mostrarMsg(data.mensagem || 'Salvo com sucesso!', 'sucesso');
+          setTimeout(() => {
+            window.location.href = '/meus-veiculos.html';
+          }, 1000);
+        } else {
+          mostrarMsg(data.erro || 'Erro ao salvar.', 'erro');
+          btn.disabled = false;
+        }
+      } catch (err) {
+        mostrarMsg('Erro ao salvar. Tente novamente.', 'erro');
+        btn.disabled = false;
+      }
+    });
+
+    function mostrarMsg(texto, tipo) {
+      const msg = document.getElementById('msg');
+      msg.textContent = texto;
+      msg.className = tipo === 'sucesso' ? 'msg-sucesso' : 'msg-erro';
+      msg.classList.remove('msg-escondida');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+# Dependências
+node_modules/
+
+# Banco de dados local
+database/locadora.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# Variáveis de ambiente (senhas, chaves)
+.env
+.env.local
