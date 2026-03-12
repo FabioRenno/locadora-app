@@ -29,9 +29,9 @@ Isso significa que:
 
 - **Node.js**
 - **Express**
-- **SQLite**
-- **Deploy na Railway**
-- **Versionamento no GitHub**
+- **PostgreSQL** (Neon)
+- **Deploy**: Render (app) + Neon (banco)
+- **Versionamento**: GitHub
 
 ---
 

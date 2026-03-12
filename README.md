@@ -41,7 +41,7 @@ O foco do produto é **reduzir atrito**, **organizar o processo inicial de conta
 
 - **Status atual**: MVP funcional em produção para testes
 - **Fase**: validação prática do fluxo principal
-- **Deploy**: Railway
+- **Deploy**: Render (app) + Neon (PostgreSQL)
 - **Repositório**: GitHub
 
 ---
@@ -50,7 +50,7 @@ O foco do produto é **reduzir atrito**, **organizar o processo inicial de conta
 
 - **Node.js**
 - **Express**
-- **SQLite**
+- **PostgreSQL** (Neon)
 
 ---
 

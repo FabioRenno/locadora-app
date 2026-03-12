@@ -57,8 +57,8 @@ Pessoas que precisam de um veículo para trabalhar com aplicativos de mobilidade
 
 - **Backend**: Node.js
 - **Framework**: Express
-- **Banco de dados**: SQLite
-- **Deploy**: Railway
+- **Banco de dados**: PostgreSQL (Neon)
+- **Deploy**: Render (app) + Neon (banco)
 - **Repositório**: GitHub
 
 ---

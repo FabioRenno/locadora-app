@@ -176,7 +176,7 @@ Evitar documentação vaga, genérica ou “bonita porém inútil”.
 
 ## 11. Ao mexer em banco de dados
 
-Como o projeto usa SQLite, qualquer alteração de estrutura deve ser feita com cautela.
+Como o projeto usa PostgreSQL (Neon), qualquer alteração de estrutura deve ser feita com cautela.
 
 A IA deve:
 - explicar o impacto da mudança
