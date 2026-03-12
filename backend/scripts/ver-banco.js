@@ -1,51 +1,36 @@
 /**
- * Exibe o conteúdo do banco locadora.db
+ * Lista tabelas e contagem de registros no PostgreSQL.
  * Execute: node backend/scripts/ver-banco.js
  */
 
 const path = require('path');
-const fs = require('fs');
+require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
+
+const { initDb, getDb } = require('../db');
 
 async function ver() {
-  const initSqlJs = require('sql.js');
-  const dbPath = path.join(__dirname, '..', '..', 'database', 'locadora.db');
+  await initDb();
+  const { pool } = getDb();
 
-  if (!fs.existsSync(dbPath)) {
-    console.log('Arquivo locadora.db não existe.');
-    return;
-  }
-
-  const SQL = await initSqlJs();
-  const buf = fs.readFileSync(dbPath);
-  const db = new SQL.Database(buf);
-
-  const tables = db.exec("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name");
-
-  if (!tables.length) {
-    console.log('Nenhuma tabela encontrada.');
-    return;
-  }
-
+  const tables = ['locadores', 'motoristas', 'veiculos', 'interesses', 'tokens_recuperacao'];
   console.log('\n=== TABELAS ===');
-  for (const t of tables[0].values) console.log('  -', t[0]);
 
-  for (const t of tables[0].values) {
-    const name = t[0];
-    const rows = db.exec('SELECT * FROM ' + name);
+  for (const name of tables) {
+    const result = await pool.query(`SELECT COUNT(*) as total FROM ${name}`);
+    const total = result.rows[0].total;
+    console.log(`  ${name}: ${total} registro(s)`);
 
-    if (rows[0]) {
-      console.log('\n=== ' + name.toUpperCase() + ' (' + rows[0].values.length + ' registro(s)) ===');
-      console.log('Colunas:', rows[0].columns.join(', '));
-
-      rows[0].values.forEach((r, i) => {
-        const obj = {};
-        rows[0].columns.forEach((c, j) => obj[c] = r[j]);
-        console.log('\n  [' + (i + 1) + ']', obj);
-      });
+    if (parseInt(total) > 0) {
+      const cols = await pool.query(`SELECT * FROM ${name} LIMIT 1`);
+      console.log('    Colunas:', Object.keys(cols.rows[0]).join(', '));
     }
   }
 
-  db.close();
+  console.log('');
+  process.exit(0);
 }
 
-ver().catch(err => console.error(err));
+ver().catch(err => {
+  console.error('Erro:', err);
+  process.exit(1);
+});

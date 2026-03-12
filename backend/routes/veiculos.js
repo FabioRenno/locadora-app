@@ -14,124 +14,88 @@ const { requerLocadorLogado } = require('./auth');
 
 const router = express.Router();
 
-// GET /api/veiculos - Lista todos os veículos (visível para todos)
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const { db } = getDb();
-    const stmt = db.prepare(`
+    const { pool } = getDb();
+    const result = await pool.query(`
       SELECT v.*, l.razao_social as locador_nome
       FROM veiculos v
       JOIN locadores l ON v.locador_id = l.id
       ORDER BY v.criado_em DESC
     `);
-    const veiculos = [];
-    while (stmt.step()) {
-      veiculos.push(stmt.getAsObject());
-    }
-    stmt.free();
-    res.json(veiculos);
+    res.json(result.rows);
   } catch (err) {
     console.error('Erro ao listar veículos:', err);
     res.status(500).json({ erro: 'Erro ao listar veículos.' });
   }
 });
 
-// GET /api/veiculos/meus - Lista veículos do locador logado (exige login)
-router.get('/meus', requerLocadorLogado, (req, res) => {
+router.get('/meus', requerLocadorLogado, async (req, res) => {
   try {
-    const { db } = getDb();
+    const { pool } = getDb();
     const locadorId = req.session.locadorId;
-    const stmt = db.prepare(
-      'SELECT * FROM veiculos WHERE locador_id = ? ORDER BY criado_em DESC'
+    const result = await pool.query(
+      'SELECT * FROM veiculos WHERE locador_id = $1 ORDER BY criado_em DESC',
+      [locadorId]
     );
-    stmt.bind([locadorId]);
-    const veiculos = [];
-    while (stmt.step()) {
-      veiculos.push(stmt.getAsObject());
-    }
-    stmt.free();
-    res.json(veiculos);
+    res.json(result.rows);
   } catch (err) {
     console.error('Erro ao listar meus veículos:', err);
     res.status(500).json({ erro: 'Erro ao listar veículos.' });
   }
 });
 
-// GET /api/veiculos/:id - Detalhe de um veículo
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const { db } = getDb();
+    const { pool } = getDb();
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
       return res.status(400).json({ erro: 'ID inválido.' });
     }
-    const stmt = db.prepare(`
-      SELECT v.*, l.razao_social as locador_nome, l.whatsapp as locador_whatsapp
-      FROM veiculos v
-      JOIN locadores l ON v.locador_id = l.id
-      WHERE v.id = ?
-    `);
-    stmt.bind([id]);
-    if (!stmt.step()) {
-      stmt.free();
+    const result = await pool.query(
+      `SELECT v.*, l.razao_social as locador_nome, l.whatsapp as locador_whatsapp
+       FROM veiculos v
+       JOIN locadores l ON v.locador_id = l.id
+       WHERE v.id = $1`,
+      [id]
+    );
+    if (result.rows.length === 0) {
       return res.status(404).json({ erro: 'Veículo não encontrado.' });
     }
-    const veiculo = stmt.getAsObject();
-    stmt.free();
-    res.json(veiculo);
+    res.json(result.rows[0]);
   } catch (err) {
     console.error('Erro ao buscar veículo:', err);
     res.status(500).json({ erro: 'Erro ao buscar veículo.' });
   }
 });
 
-// POST /api/veiculos - Adiciona veículo (somente locador logado)
-router.post('/', requerLocadorLogado, (req, res) => {
+router.post('/', requerLocadorLogado, async (req, res) => {
   try {
-    const { db, save } = getDb();
+    const { pool } = getDb();
     const locadorId = req.session.locadorId;
-
     const {
-      marca,
-      modelo,
-      ano,
-      placa,
-      cor,
-      preco_diaria,
-      preco_semanal,
-      valor_caucao,
-      responsabilidade_manutencao,
-      local_retirada,
-      foto_url,
-      disponivel,
-      observacoes
+      marca, modelo, ano, placa, cor,
+      preco_diaria, preco_semanal, valor_caucao,
+      responsabilidade_manutencao, local_retirada,
+      foto_url, disponivel, observacoes
     } = req.body;
 
     if (
-      !marca ||
-      !modelo ||
-      !ano ||
-      !placa ||
-      !cor ||
-      !preco_semanal ||
-      valor_caucao === undefined ||
-      valor_caucao === '' ||
-      !responsabilidade_manutencao ||
-      !local_retirada
+      !marca || !modelo || !ano || !placa || !cor ||
+      !preco_semanal || valor_caucao === undefined || valor_caucao === '' ||
+      !responsabilidade_manutencao || !local_retirada
     ) {
-      return res
-        .status(400)
-        .json({ erro: 'Preencha todos os campos obrigatórios.' });
+      return res.status(400).json({ erro: 'Preencha todos os campos obrigatórios.' });
     }
 
     const disponivelInt = disponivel === true || disponivel === '1' || disponivel === 'sim' ? 1 : 0;
 
-    db.run(
+    await pool.query(
       `INSERT INTO veiculos (
         locador_id, marca, modelo, ano, placa, cor,
         preco_diaria, preco_semanal, valor_caucao, responsabilidade_manutencao,
         local_retirada, foto_url, disponivel, observacoes
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
       [
         locadorId,
         marca.trim(),
@@ -150,7 +114,6 @@ router.post('/', requerLocadorLogado, (req, res) => {
       ]
     );
 
-    save();
     res.status(201).json({ sucesso: true, mensagem: 'Veículo cadastrado com sucesso.' });
   } catch (err) {
     console.error('Erro ao cadastrar veículo:', err);
@@ -158,10 +121,9 @@ router.post('/', requerLocadorLogado, (req, res) => {
   }
 });
 
-// PUT /api/veiculos/:id - Atualiza veículo (somente o dono)
-router.put('/:id', requerLocadorLogado, (req, res) => {
+router.put('/:id', requerLocadorLogado, async (req, res) => {
   try {
-    const { db, save } = getDb();
+    const { pool } = getDb();
     const locadorId = req.session.locadorId;
     const id = parseInt(req.params.id, 10);
 
@@ -169,57 +131,38 @@ router.put('/:id', requerLocadorLogado, (req, res) => {
       return res.status(400).json({ erro: 'ID inválido.' });
     }
 
-    // Verifica se o veículo pertence ao locador
-    const check = db.prepare('SELECT id FROM veiculos WHERE id = ? AND locador_id = ?');
-    check.bind([id, locadorId]);
-    if (!check.step()) {
-      check.free();
+    const checkResult = await pool.query(
+      'SELECT id FROM veiculos WHERE id = $1 AND locador_id = $2',
+      [id, locadorId]
+    );
+    if (checkResult.rows.length === 0) {
       return res.status(404).json({ erro: 'Veículo não encontrado ou você não tem permissão.' });
     }
-    check.free();
 
     const {
-      marca,
-      modelo,
-      ano,
-      placa,
-      cor,
-      preco_diaria,
-      preco_semanal,
-      valor_caucao,
-      responsabilidade_manutencao,
-      local_retirada,
-      foto_url,
-      disponivel,
-      observacoes
+      marca, modelo, ano, placa, cor,
+      preco_diaria, preco_semanal, valor_caucao,
+      responsabilidade_manutencao, local_retirada,
+      foto_url, disponivel, observacoes
     } = req.body;
 
     if (
-      !marca ||
-      !modelo ||
-      !ano ||
-      !placa ||
-      !cor ||
-      !preco_semanal ||
-      valor_caucao === undefined ||
-      valor_caucao === '' ||
-      !responsabilidade_manutencao ||
-      !local_retirada
+      !marca || !modelo || !ano || !placa || !cor ||
+      !preco_semanal || valor_caucao === undefined || valor_caucao === '' ||
+      !responsabilidade_manutencao || !local_retirada
     ) {
-      return res
-        .status(400)
-        .json({ erro: 'Preencha todos os campos obrigatórios.' });
+      return res.status(400).json({ erro: 'Preencha todos os campos obrigatórios.' });
     }
 
     const disponivelInt = disponivel === true || disponivel === '1' || disponivel === 'sim' ? 1 : 0;
 
-    db.run(
+    await pool.query(
       `UPDATE veiculos SET
-        marca = ?, modelo = ?, ano = ?, placa = ?, cor = ?,
-        preco_diaria = ?, preco_semanal = ?, valor_caucao = ?,
-        responsabilidade_manutencao = ?, local_retirada = ?,
-        foto_url = ?, disponivel = ?, observacoes = ?
-      WHERE id = ? AND locador_id = ?`,
+        marca = $1, modelo = $2, ano = $3, placa = $4, cor = $5,
+        preco_diaria = $6, preco_semanal = $7, valor_caucao = $8,
+        responsabilidade_manutencao = $9, local_retirada = $10,
+        foto_url = $11, disponivel = $12, observacoes = $13
+      WHERE id = $14 AND locador_id = $15`,
       [
         marca.trim(),
         modelo.trim(),
@@ -239,7 +182,6 @@ router.put('/:id', requerLocadorLogado, (req, res) => {
       ]
     );
 
-    save();
     res.json({ sucesso: true, mensagem: 'Veículo atualizado com sucesso.' });
   } catch (err) {
     console.error('Erro ao atualizar veículo:', err);
@@ -247,10 +189,9 @@ router.put('/:id', requerLocadorLogado, (req, res) => {
   }
 });
 
-// DELETE /api/veiculos/:id - Remove veículo (somente o dono)
-router.delete('/:id', requerLocadorLogado, (req, res) => {
+router.delete('/:id', requerLocadorLogado, async (req, res) => {
   try {
-    const { db, save } = getDb();
+    const { pool } = getDb();
     const locadorId = req.session.locadorId;
     const id = parseInt(req.params.id, 10);
 
@@ -258,13 +199,15 @@ router.delete('/:id', requerLocadorLogado, (req, res) => {
       return res.status(400).json({ erro: 'ID inválido.' });
     }
 
-    db.run('DELETE FROM veiculos WHERE id = ? AND locador_id = ?', [id, locadorId]);
+    const result = await pool.query(
+      'DELETE FROM veiculos WHERE id = $1 AND locador_id = $2',
+      [id, locadorId]
+    );
 
-    if (db.getRowsModified() === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({ erro: 'Veículo não encontrado ou você não tem permissão.' });
     }
 
-    save();
     res.json({ sucesso: true, mensagem: 'Veículo removido com sucesso.' });
   } catch (err) {
     console.error('Erro ao remover veículo:', err);

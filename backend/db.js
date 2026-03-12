@@ -1,38 +1,50 @@
 /**
- * Conexão com o banco SQLite (via sql.js - JavaScript puro, sem compilação)
- * 
- * sql.js funciona em qualquer sistema, sem precisar de Python ou ferramentas de build.
- * O banco fica em memória e é salvo em arquivo após cada alteração.
+ * Conexão com PostgreSQL (Neon, Render, etc.)
+ *
+ * Usa DATABASE_URL do ambiente. Compatível com Neon, Railway, Render.
  */
 
-const path = require('path');
-const fs = require('fs');
+const { Pool } = require('pg');
 
-let _db = null;
-let _save = null;
+let _pool = null;
 
 async function initDb() {
-  const initSqlJs = require('sql.js');
-  const SQL = await initSqlJs();
-
-  const dbPath = path.join(__dirname, '..', 'database', 'locadora.db');
-  const dbDir = path.dirname(dbPath);
-
-  if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error(
+      'DATABASE_URL não configurada. Configure no .env (local) ou nas variáveis de ambiente (Neon/Render).'
+    );
   }
 
-  let db;
-  if (fs.existsSync(dbPath)) {
-    const buffer = fs.readFileSync(dbPath);
-    db = new SQL.Database(buffer);
-  } else {
-    db = new SQL.Database();
-  }
+  const pool = new Pool({
+    connectionString: databaseUrl,
+    ssl: databaseUrl.includes('localhost') ? false : { rejectUnauthorized: false }
+  });
 
-  db.run(`
+  // Ordem das tabelas: locadores e motoristas primeiro (sem FK), depois veiculos, interesses, tokens
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS locadores (
+      id SERIAL PRIMARY KEY,
+      razao_social TEXT NOT NULL,
+      nome_fantasia TEXT,
+      cnpj TEXT NOT NULL UNIQUE,
+      email TEXT NOT NULL,
+      telefone TEXT NOT NULL,
+      whatsapp TEXT NOT NULL,
+      endereco TEXT NOT NULL,
+      cidade TEXT NOT NULL,
+      estado TEXT NOT NULL,
+      cep TEXT NOT NULL,
+      area_atuacao TEXT,
+      horario_atendimento TEXT,
+      senha_hash TEXT NOT NULL,
+      criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS motoristas (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       nome_completo TEXT NOT NULL,
       cpf TEXT NOT NULL UNIQUE,
       rg TEXT NOT NULL,
@@ -50,14 +62,14 @@ async function initDb() {
       cep TEXT,
       apps_que_usa TEXT,
       senha_hash TEXT NOT NULL,
-      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+      criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
 
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS veiculos (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      locador_id INTEGER NOT NULL,
+      id SERIAL PRIMARY KEY,
+      locador_id INTEGER NOT NULL REFERENCES locadores(id),
       marca TEXT NOT NULL,
       modelo TEXT NOT NULL,
       ano INTEGER NOT NULL,
@@ -71,68 +83,37 @@ async function initDb() {
       foto_url TEXT,
       disponivel INTEGER NOT NULL DEFAULT 1,
       observacoes TEXT,
-      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (locador_id) REFERENCES locadores(id)
+      criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
 
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS interesses (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      motorista_id INTEGER NOT NULL,
-      veiculo_id INTEGER NOT NULL,
-      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (motorista_id) REFERENCES motoristas(id),
-      FOREIGN KEY (veiculo_id) REFERENCES veiculos(id)
+      id SERIAL PRIMARY KEY,
+      motorista_id INTEGER NOT NULL REFERENCES motoristas(id),
+      veiculo_id INTEGER NOT NULL REFERENCES veiculos(id),
+      criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
 
-  db.run(`
-    CREATE TABLE IF NOT EXISTS locadores (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      razao_social TEXT NOT NULL,
-      nome_fantasia TEXT,
-      cnpj TEXT NOT NULL UNIQUE,
-      email TEXT NOT NULL,
-      telefone TEXT NOT NULL,
-      whatsapp TEXT NOT NULL,
-      endereco TEXT NOT NULL,
-      cidade TEXT NOT NULL,
-      estado TEXT NOT NULL,
-      cep TEXT NOT NULL,
-      area_atuacao TEXT,
-      horario_atendimento TEXT,
-      senha_hash TEXT NOT NULL,
-      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS tokens_recuperacao (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       email TEXT NOT NULL,
       token TEXT NOT NULL UNIQUE,
       tipo TEXT NOT NULL,
-      expira_em DATETIME NOT NULL,
+      expira_em TIMESTAMP NOT NULL,
       usado INTEGER DEFAULT 0
     )
   `);
 
-  function save() {
-    const data = db.export();
-    const buffer = Buffer.from(data);
-    fs.writeFileSync(dbPath, buffer);
-  }
-
-  _db = db;
-  _save = save;
-
-  return { db, save };
+  _pool = pool;
+  return { pool };
 }
 
 function getDb() {
-  if (!_db) throw new Error('Banco não inicializado. Chame initDb() primeiro.');
-  return { db: _db, save: _save };
+  if (!_pool) throw new Error('Banco não inicializado. Chame initDb() primeiro.');
+  return { pool: _pool };
 }
 
 module.exports = { initDb, getDb };

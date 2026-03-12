@@ -3,9 +3,9 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 /**
  * Servidor principal do sistema Locadora App
- * 
+ *
  * O que este arquivo faz?
- * 1. Inicializa o banco SQLite (sql.js - sem compilação nativa)
+ * 1. Inicializa o banco PostgreSQL (Neon, Render, Railway, etc.)
  * 2. Configura sessões (para login)
  * 3. Cria um servidor web
  * 4. Entrega páginas e processa cadastros, login, etc.
@@ -30,7 +30,7 @@ app.use(express.json());
 
 // Sessões: "lembra" que o usuário está logado entre as páginas
 app.use(session({
-  secret: 'locadora-app-segredo-2025',
+  secret: process.env.SESSION_SECRET || 'locadora-app-segredo-2025',
   resave: false,
   saveUninitialized: false,
   cookie: { maxAge: 24 * 60 * 60 * 1000 } // 24 horas
