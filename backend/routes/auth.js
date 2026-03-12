@@ -9,6 +9,7 @@ const express = require('express');
 const crypto = require('crypto');
 const path = require('path');
 const { getDb } = require('../db');
+const { enviarEmailRecuperacao } = require('../email');
 
 const router = express.Router();
 const frontendPath = path.join(__dirname, '..', '..', 'frontend');
@@ -147,5 +148,104 @@ router.get('/painel-motorista', requerMotoristaLogado, (req, res) => {
   res.sendFile(path.join(frontendPath, 'painel-motorista.html'));
 });
 
+/** Recuperação de senha */
+function hashSenha(senha) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.pbkdf2Sync(senha, salt, 10000, 64, 'sha512').toString('hex');
+  return `${salt}:${hash}`;
+}
+
+// POST /api/recuperar-senha - Solicita link de recuperação
+router.post('/api/recuperar-senha', async (req, res) => {
+  try {
+    const { email, tipo } = req.body;
+    if (!email || !tipo) {
+      return res.status(400).json({ ok: false, erro: 'E-mail e tipo são obrigatórios.' });
+    }
+    if (tipo !== 'locador' && tipo !== 'motorista') {
+      return res.status(400).json({ ok: false, erro: 'Tipo inválido.' });
+    }
+
+    const { db, save } = getDb();
+    const table = tipo === 'locador' ? 'locadores' : 'motoristas';
+    const stmt = db.prepare(`SELECT id FROM ${table} WHERE email = ?`);
+    stmt.bind([email.trim()]);
+    const existe = stmt.step();
+    stmt.free();
+
+    if (!existe) {
+      // Mensagem neutra por segurança
+      return res.json({ ok: true, mensagem: 'Se o e-mail estiver cadastrado, você receberá um link.' });
+    }
+
+    const host = process.env.EMAIL_HOST;
+    const user = process.env.EMAIL_USER;
+    const pass = process.env.EMAIL_PASS;
+    if (!host || !user || !pass) {
+      return res.status(503).json({ ok: false, erro: 'Recuperação por e-mail não configurada. Entre em contato com o suporte.' });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiraEm = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(); // 2 horas
+
+    db.run(
+      'INSERT INTO tokens_recuperacao (email, token, tipo, expira_em) VALUES (?, ?, ?, ?)',
+      [email.trim(), token, tipo, expiraEm]
+    );
+    save();
+
+    const enviou = await enviarEmailRecuperacao(email.trim(), token, tipo);
+    if (!enviou) {
+      return res.status(503).json({ ok: false, erro: 'Não foi possível enviar o e-mail. Tente novamente mais tarde.' });
+    }
+
+    res.json({ ok: true, mensagem: 'Se o e-mail estiver cadastrado, você receberá um link.' });
+  } catch (err) {
+    console.error('Erro ao recuperar senha:', err);
+    res.status(500).json({ ok: false, erro: 'Erro ao processar. Tente novamente.' });
+  }
+});
+
+// POST /api/redefinir-senha - Redefine a senha com o token
+router.post('/api/redefinir-senha', (req, res) => {
+  try {
+    const { token, nova_senha } = req.body;
+    if (!token || !nova_senha) {
+      return res.status(400).json({ ok: false, erro: 'Token e nova senha são obrigatórios.' });
+    }
+    if (nova_senha.length < 6) {
+      return res.status(400).json({ ok: false, erro: 'A senha deve ter no mínimo 6 caracteres.' });
+    }
+
+    const { db, save } = getDb();
+
+    const stmt = db.prepare(`
+      SELECT id, email, tipo, usado FROM tokens_recuperacao
+      WHERE token = ? AND usado = 0 AND expira_em > datetime('now')
+    `);
+    stmt.bind([token]);
+    let row = null;
+    if (stmt.step()) row = stmt.getAsObject();
+    stmt.free();
+
+    if (!row) {
+      return res.status(400).json({ ok: false, erro: 'Link inválido ou expirado. Solicite uma nova recuperação de senha.' });
+    }
+
+    const senhaHash = hashSenha(nova_senha);
+    const table = row.tipo === 'locador' ? 'locadores' : 'motoristas';
+
+    db.run(`UPDATE ${table} SET senha_hash = ? WHERE email = ?`, [senhaHash, row.email]);
+    db.run('UPDATE tokens_recuperacao SET usado = 1 WHERE token = ?', [token]);
+    save();
+
+    res.json({ ok: true, mensagem: 'Senha alterada com sucesso.' });
+  } catch (err) {
+    console.error('Erro ao redefinir senha:', err);
+    res.status(500).json({ ok: false, erro: 'Erro ao processar. Tente novamente.' });
+  }
+});
+
 module.exports = router;
 module.exports.requerLocadorLogado = requerLocadorLogado;
+module.exports.requerMotoristaLogado = requerMotoristaLogado;

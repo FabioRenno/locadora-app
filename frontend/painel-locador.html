@@ -9,25 +9,71 @@
 <body>
   <header class="cabecalho cabecalho-painel">
     <h1>Painel do Locador</h1>
-    <p class="subtitulo">Bem-vindo ao seu painel de controle</p>
+    <p class="subtitulo" id="saudacao">Bem-vindo ao seu painel de controle</p>
     <p class="sair"><a href="/api/logout">Sair</a></p>
   </header>
 
   <main class="conteudo">
+    <div id="resumo-painel" class="resumo-painel" style="display: none;">
+      <p><span id="total-veiculos">0</span> veículo(s) publicado(s) · <span id="total-interesses">0</span> interesse(s) recebido(s)</p>
+    </div>
+
     <nav class="menu-painel">
       <a href="/meus-veiculos.html" class="botao botao-painel">
         <span class="icone">🚗</span>
         <span>Meus veículos</span>
-        <span class="descricao">Adicionar e gerenciar anúncios</span>
+        <span class="descricao" id="desc-veiculos">Adicionar e gerenciar anúncios</span>
       </a>
-      <a href="/interesses-locador.html" class="botao botao-painel">
+      <a href="/interesses-locador.html" class="botao botao-painel" id="link-interesses">
         <span class="icone">📋</span>
         <span>Interesses recebidos</span>
+        <span class="badge-interesse" id="badge-interesses" style="display: none;"></span>
         <span class="descricao">Motoristas que demonstraram interesse</span>
       </a>
     </nav>
-
-    <p class="voltar"><a href="/">← Voltar para a página inicial</a></p>
   </main>
+
+  <script>
+    async function carregarResumo() {
+      try {
+        const sessRes = await fetch('/api/session', { credentials: 'same-origin' });
+        const sess = await sessRes.json();
+        if (sess.logado && sess.tipo === 'locador') {
+          document.getElementById('saudacao').textContent = 'Olá, ' + (sess.nome || 'Locador');
+        }
+      } catch (e) {}
+
+      try {
+        const [veiculosRes, interessesRes] = await Promise.all([
+          fetch('/api/veiculos/meus', { credentials: 'same-origin' }),
+          fetch('/api/interesses', { credentials: 'same-origin' })
+        ]);
+
+        if (veiculosRes.status === 401 || interessesRes.status === 401) {
+          window.location.href = '/login-locador?erro=entrar';
+          return;
+        }
+
+        const veiculos = await veiculosRes.json();
+        const interesses = await interessesRes.json();
+
+        const nVeiculos = Array.isArray(veiculos) ? veiculos.length : 0;
+        const nInteresses = Array.isArray(interesses) ? interesses.length : 0;
+
+        document.getElementById('total-veiculos').textContent = nVeiculos;
+        document.getElementById('total-interesses').textContent = nInteresses;
+        document.getElementById('resumo-painel').style.display = 'block';
+
+        if (nInteresses > 0) {
+          const badge = document.getElementById('badge-interesses');
+          badge.textContent = nInteresses;
+          badge.style.display = 'inline';
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    document.addEventListener('DOMContentLoaded', carregarResumo);
+  </script>
 </body>
 </html>

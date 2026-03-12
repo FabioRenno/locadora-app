@@ -44,8 +44,8 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
-// Páginas restritas ao locador (antes do static para interceptar)
-const { requerLocadorLogado } = require('./routes/auth');
+// Páginas restritas (antes do static para interceptar)
+const { requerLocadorLogado, requerMotoristaLogado } = require('./routes/auth');
 app.get('/meus-veiculos.html', requerLocadorLogado, (req, res) => {
   res.sendFile(path.join(frontendPath, 'meus-veiculos.html'));
 });
@@ -54,6 +54,10 @@ app.get('/veiculo-form.html', requerLocadorLogado, (req, res) => {
 });
 app.get('/interesses-locador.html', requerLocadorLogado, (req, res) => {
   res.sendFile(path.join(frontendPath, 'interesses-locador.html'));
+});
+
+app.get('/interesses-motorista.html', requerMotoristaLogado, (req, res) => {
+  res.sendFile(path.join(frontendPath, 'interesses-motorista.html'));
 });
 
 // Arquivos públicos (HTML, CSS, imagens) - por último para não sobrescrever rotas

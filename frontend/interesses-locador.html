@@ -8,7 +8,7 @@
 </head>
 <body>
   <header class="cabecalho cabecalho-painel">
-    <h1>Interesses recebidos</h1>
+    <h1>Interesses recebidos <span id="contador-titulo"></span></h1>
     <p class="subtitulo">Motoristas que demonstraram interesse nos seus veículos</p>
     <p class="sair"><a href="/api/logout">Sair</a></p>
   </header>
@@ -32,12 +32,20 @@
         }
         const interesses = await res.json();
 
+        document.getElementById('contador-titulo').textContent = `(${interesses.length})`;
+
         if (interesses.length === 0) {
           lista.innerHTML = '<div class="card-vazio"><p>Nenhum motorista manifestou interesse nos seus veículos ainda.</p><p>Os interesses aparecerão aqui quando um motorista logado clicar em "Tenho interesse" na página de detalhe de um veículo seu.</p></div>';
           return;
         }
 
-        lista.innerHTML = interesses.map(i => `
+        lista.innerHTML = interesses.map(i => {
+          const whatsappNum = i.motorista.whatsapp ? i.motorista.whatsapp.replace(/\D/g, '') : '';
+          const linkWhatsApp = whatsappNum ? `https://wa.me/55${whatsappNum}` : '';
+          const btnWhatsApp = linkWhatsApp
+            ? `<a href="${linkWhatsApp}" class="botao-whatsapp-cabecalho whatsapp" target="_blank" rel="noopener">Falar no WhatsApp</a>`
+            : '';
+          return `
           <article class="card-interesse" data-id="${i.id}">
             <div class="card-interesse-cabecalho">
               <div>
@@ -45,7 +53,10 @@
                 <p class="motorista-nome">${escapeHtml(i.motorista.nome_completo)}</p>
                 <p class="data-interesse">${formatarData(i.criado_em)}</p>
               </div>
-              <button type="button" class="botao-expandir" aria-expanded="false">Ver dados do motorista ▼</button>
+              <div class="card-interesse-acoes">
+                ${btnWhatsApp}
+                <button type="button" class="botao-expandir" aria-expanded="false">Ver dados do motorista ▼</button>
+              </div>
             </div>
             <div class="card-interesse-detalhes" hidden>
               <h4>Dados para checagem (Serasa/SPC)</h4>
@@ -74,7 +85,8 @@
               </ul>
             </div>
           </article>
-        `).join('');
+        `;
+        }).join('');
 
         lista.querySelectorAll('.botao-expandir').forEach(btn => {
           btn.addEventListener('click', () => {

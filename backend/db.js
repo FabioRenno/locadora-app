@@ -107,6 +107,17 @@ async function initDb() {
     )
   `);
 
+  db.run(`
+    CREATE TABLE IF NOT EXISTS tokens_recuperacao (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL,
+      token TEXT NOT NULL UNIQUE,
+      tipo TEXT NOT NULL,
+      expira_em DATETIME NOT NULL,
+      usado INTEGER DEFAULT 0
+    )
+  `);
+
   function save() {
     const data = db.export();
     const buffer = Buffer.from(data);

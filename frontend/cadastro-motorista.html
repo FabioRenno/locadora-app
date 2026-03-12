@@ -100,16 +100,55 @@
 
       <fieldset class="grupo-campos">
         <legend>Segurança</legend>
-        <div class="campo">
+        <div class="campo campo-senha">
           <label for="senha">Senha *</label>
-          <input type="password" id="senha" name="senha" required placeholder="Mínimo 6 caracteres" minlength="6">
+          <div class="input-senha-wrap">
+            <input type="password" id="senha" name="senha" required placeholder="Mínimo 6 caracteres" minlength="6" autocomplete="new-password">
+            <button type="button" class="toggle-senha" aria-label="Mostrar senha" data-target="senha" title="Mostrar senha">👁</button>
+          </div>
+        </div>
+        <div class="campo campo-senha">
+          <label for="confirmar_senha">Confirmar senha *</label>
+          <div class="input-senha-wrap">
+            <input type="password" id="confirmar_senha" required placeholder="Digite a senha novamente" minlength="6" autocomplete="new-password">
+            <button type="button" class="toggle-senha" aria-label="Mostrar confirmar senha" data-target="confirmar_senha" title="Mostrar senha">👁</button>
+          </div>
         </div>
       </fieldset>
+
+      <div id="msg-erro-senha" class="msg-erro" style="display: none;"></div>
 
       <div class="acoes-formulario">
         <button type="submit" class="botao-enviar">Cadastrar</button>
       </div>
     </form>
   </main>
+
+  <script>
+    const form = document.querySelector('.formulario');
+    form.addEventListener('submit', function(e) {
+      const senha = document.getElementById('senha').value;
+      const confirmar = document.getElementById('confirmar_senha').value;
+      const msgErro = document.getElementById('msg-erro-senha');
+      if (senha !== confirmar) {
+        e.preventDefault();
+        msgErro.textContent = 'As senhas não conferem. Digite novamente.';
+        msgErro.style.display = 'block';
+        return;
+      }
+    });
+
+    document.querySelectorAll('.toggle-senha').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = this.dataset.target;
+        const input = document.getElementById(id);
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+        btn.textContent = '👁';
+        btn.title = isPassword ? 'Ocultar senha' : 'Mostrar senha';
+        btn.setAttribute('aria-label', isPassword ? 'Ocultar senha' : 'Mostrar senha');
+      });
+    });
+  </script>
 </body>
 </html>

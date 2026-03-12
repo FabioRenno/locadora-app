@@ -87,6 +87,21 @@ body {
   font-weight: 600;
 }
 
+/* --- Esqueci minha senha --- */
+.esqueci-senha {
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.esqueci-senha a {
+  color: var(--cor-texto-claro);
+}
+
+.esqueci-senha a:hover {
+  color: var(--cor-primaria);
+}
+
 /* --- Usuário logado (página inicial) --- */
 .usuario-logado {
   display: flex;
@@ -107,18 +122,29 @@ body {
 }
 
 .usuario-sair {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 500;
   color: white;
-  text-decoration: underline;
-  padding: 0.25rem 0.5rem;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s;
 }
 
 .usuario-sair:hover {
-  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.6);
 }
 
 /* --- Painel --- */
 .cabecalho-painel {
   position: relative;
+  padding-right: 6rem; /* espaço para o botão Sair não encavalar no título */
 }
 
 .sair {
@@ -126,15 +152,57 @@ body {
   top: 0;
   right: 0;
   margin: 0;
+  z-index: 1;
 }
 
 .sair a {
-  color: var(--cor-texto-claro);
-  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--cor-primaria);
+  background: rgba(26, 95, 74, 0.1);
+  border: 1px solid rgba(26, 95, 74, 0.3);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .sair a:hover {
-  color: var(--cor-primaria);
+  background: var(--cor-primaria);
+  color: white;
+  border-color: var(--cor-primaria);
+}
+
+.resumo-painel {
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 1rem;
+  background: #e8f5e9;
+  border-radius: 8px;
+  color: var(--cor-secundaria);
+  font-size: 0.95rem;
+}
+
+.resumo-painel p {
+  margin: 0;
+}
+
+.badge-interesse {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.4rem;
+  margin-left: 0.5rem;
+  background: var(--cor-primaria);
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 999px;
+  vertical-align: middle;
 }
 
 .menu-painel {
@@ -210,6 +278,23 @@ body {
 .botao-motorista:hover { border-color: #3498db; }
 .botao-ver:hover { border-color: #9b59b6; }
 
+/* Ver Veículos na landing: mesmo estilo dos outros cards (sem borda fixa) */
+.botoes-acao .botao-ver {
+  background: white;
+  color: var(--cor-texto) !important;
+  border-color: transparent;
+}
+.botoes-acao .botao-ver span:not(.icone):not(.descricao) {
+  color: var(--cor-secundaria);
+}
+.botoes-acao .botao-ver .descricao {
+  color: var(--cor-texto-claro);
+}
+.botoes-acao .botao-ver:hover {
+  background: white;
+  border-color: #9b59b6;
+}
+
 /* --- Links de navegação --- */
 .voltar {
   margin-bottom: 1.5rem;
@@ -279,6 +364,50 @@ body {
 
 .campo input::placeholder {
   color: #999;
+}
+
+/* --- Wrapper senha com toggle mostrar/ocultar --- */
+.campo-senha {
+  position: relative;
+}
+
+.campo-senha .input-senha-wrap {
+  position: relative;
+  display: block;
+}
+
+.campo-senha input {
+  padding-right: 2.75rem;
+}
+
+.campo-senha .toggle-senha {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.35rem;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cor-texto-claro);
+  font-size: 1.4rem;
+  line-height: 1;
+  border-radius: 4px;
+}
+
+.campo-senha .toggle-senha:hover {
+  color: var(--cor-primaria);
+  background: rgba(26, 95, 74, 0.08);
+}
+
+.campo-senha .toggle-senha:focus {
+  outline: 2px solid var(--cor-primaria);
+  outline-offset: 2px;
 }
 
 .campo-checkbox label {
@@ -436,6 +565,95 @@ body {
 
 .botao-excluir:hover {
   background: #c0392b;
+}
+
+/* --- Meus interesses (motorista) --- */
+.lista-interesses-motorista {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.card-interesse-motorista {
+  padding: 1.25rem;
+  background: white;
+  border-radius: var(--borda-radius);
+  box-shadow: var(--sombra);
+}
+
+.card-interesse-motorista-info h3 {
+  font-size: 1.1rem;
+  color: var(--cor-secundaria);
+  margin-bottom: 0.35rem;
+}
+
+.card-interesse-motorista-info .detalhe {
+  font-size: 0.9rem;
+  color: var(--cor-texto-claro);
+  margin-bottom: 0.25rem;
+}
+
+.card-interesse-motorista-info .preco {
+  font-weight: 600;
+  color: var(--cor-primaria);
+}
+
+.card-interesse-motorista-info .data-interesse {
+  font-size: 0.85rem;
+  color: var(--cor-texto-claro);
+  margin-top: 0.25rem;
+}
+
+.card-interesse-motorista-acoes {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.botao-desfazer {
+  background: #e74c3c;
+  color: white;
+}
+
+.botao-desfazer:hover {
+  background: #c0392b;
+}
+
+.botao-ver {
+  background: white;
+  color: var(--cor-primaria) !important;
+  border: 2px solid var(--cor-primaria);
+}
+
+.botao-ver:hover {
+  background: rgba(26, 95, 74, 0.08);
+  border-color: var(--cor-primaria);
+}
+
+.card-interesse-motorista-motivo {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.card-interesse-motorista-motivo label {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.card-interesse-motorista-motivo select {
+  width: 100%;
+  max-width: 300px;
+  padding: 0.5rem;
+  margin-bottom: 0.75rem;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+}
+
+.botoes-motivo {
+  display: flex;
+  gap: 0.5rem;
 }
 
 .card-vazio {
@@ -633,6 +851,27 @@ body {
   border-radius: var(--borda-radius);
   box-shadow: var(--sombra);
   overflow: hidden;
+}
+
+.card-interesse-acoes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.botao-whatsapp-cabecalho {
+  display: inline-block;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.9rem;
+  text-decoration: none;
+  border-radius: 6px;
+  border: 1px solid #25d366;
+  white-space: nowrap;
+}
+
+.botao-whatsapp-cabecalho:hover {
+  background: rgba(37, 211, 102, 0.1);
 }
 
 .card-interesse-cabecalho {

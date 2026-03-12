@@ -13,7 +13,7 @@
   </header>
 
   <main class="conteudo">
-    <p class="voltar"><a href="/">← Voltar para a página inicial</a></p>
+    <p class="voltar" id="link-voltar"><a href="/">← Voltar para a página inicial</a></p>
 
     <div id="lista-veiculos" class="lista-veiculos-publica">
       <p class="carregando">Carregando veículos...</p>
@@ -30,6 +30,14 @@
         const sessRes = await fetch('/api/session', { credentials: 'same-origin' });
         const sess = await sessRes.json();
         motoristaLogado = sess.tipo === 'motorista';
+
+        // Link voltar: se logado, vai ao painel; senão, à página inicial
+        const linkVoltar = document.getElementById('link-voltar');
+        if (sess.logado && sess.tipo === 'motorista') {
+          linkVoltar.innerHTML = '<a href="/painel-motorista">← Voltar ao painel</a>';
+        } else if (sess.logado && sess.tipo === 'locador') {
+          linkVoltar.innerHTML = '<a href="/painel-locador">← Voltar ao painel</a>';
+        }
 
         const res = await fetch('/api/veiculos');
         const veiculos = await res.json();

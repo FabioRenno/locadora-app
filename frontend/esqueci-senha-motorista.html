@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Esqueci minha senha - Motorista - Locadora App</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="cabecalho">
+    <h1>Recuperar senha</h1>
+    <p class="subtitulo">Informe o e-mail da sua conta de motorista para receber o link de redefinição</p>
+  </header>
+
+  <main class="conteudo">
+    <p class="voltar"><a href="/login-motorista">← Voltar ao login</a></p>
+
+    <div id="msg" class="msg-escondida"></div>
+
+    <form class="formulario formulario-login" id="form-recuperar">
+      <fieldset class="grupo-campos">
+        <div class="campo">
+          <label for="email">E-mail *</label>
+          <input type="email" id="email" name="email" required
+                 placeholder="seu@email.com"
+                 autocomplete="email">
+        </div>
+      </fieldset>
+
+      <div class="acoes-formulario">
+        <button type="submit" class="botao-enviar">Enviar link de recuperação</button>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    document.getElementById('form-recuperar').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const msg = document.getElementById('msg');
+      const btn = this.querySelector('button[type="submit"]');
+
+      btn.disabled = true;
+      msg.className = 'msg-escondida';
+      msg.textContent = '';
+
+      try {
+        const res = await fetch('/api/recuperar-senha', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, tipo: 'motorista' })
+        });
+        const data = await res.json();
+
+        msg.classList.remove('msg-escondida');
+        if (res.ok && data.ok) {
+          msg.className = 'msg-sucesso';
+          msg.innerHTML = 'Se este e-mail estiver cadastrado, você receberá um link para redefinir sua senha. Verifique sua caixa de entrada e spam. <a href="/login-motorista">Voltar ao login</a>';
+        } else {
+          msg.className = 'msg-erro';
+          msg.textContent = data.erro || 'Erro ao processar. Tente novamente.';
+        }
+      } catch (err) {
+        msg.className = 'msg-erro';
+        msg.classList.remove('msg-escondida');
+        msg.textContent = 'Erro de conexão. Tente novamente.';
+      }
+      btn.disabled = false;
+    });
+  </script>
+</body>
+</html>

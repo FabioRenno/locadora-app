@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redefinir senha - Motorista - Locadora App</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="cabecalho">
+    <h1>Redefinir senha</h1>
+    <p class="subtitulo">Digite e confirme sua nova senha</p>
+  </header>
+
+  <main class="conteudo">
+    <p class="voltar"><a href="/login-motorista">← Voltar ao login</a></p>
+
+    <div id="msg" class="msg-escondida"></div>
+
+    <form class="formulario formulario-login" id="form-redefinir">
+      <fieldset class="grupo-campos">
+        <div class="campo campo-senha">
+          <label for="nova_senha">Nova senha *</label>
+          <div class="input-senha-wrap">
+            <input type="password" id="nova_senha" name="nova_senha" required
+                   placeholder="Mínimo 6 caracteres"
+                   minlength="6"
+                   autocomplete="new-password">
+            <button type="button" class="toggle-senha" aria-label="Mostrar senha" data-target="nova_senha" title="Mostrar senha">👁</button>
+          </div>
+        </div>
+        <div class="campo campo-senha">
+          <label for="confirmar_senha">Confirmar nova senha *</label>
+          <div class="input-senha-wrap">
+            <input type="password" id="confirmar_senha" required
+                   placeholder="Digite a senha novamente"
+                   minlength="6"
+                   autocomplete="new-password">
+            <button type="button" class="toggle-senha" aria-label="Mostrar confirmar senha" data-target="confirmar_senha" title="Mostrar senha">👁</button>
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="acoes-formulario">
+        <button type="submit" class="botao-enviar">Redefinir senha</button>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+
+    if (!token) {
+      document.getElementById('msg').className = 'msg-erro';
+      document.getElementById('msg').textContent = 'Link inválido. Solicite uma nova recuperação de senha.';
+      document.getElementById('msg').classList.remove('msg-escondida');
+      document.getElementById('form-redefinir').style.display = 'none';
+    } else {
+      document.getElementById('form-redefinir').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const novaSenha = document.getElementById('nova_senha').value;
+        const confirmar = document.getElementById('confirmar_senha').value;
+        const msg = document.getElementById('msg');
+        const btn = this.querySelector('button[type="submit"]');
+
+        if (novaSenha !== confirmar) {
+          msg.className = 'msg-erro';
+          msg.textContent = 'As senhas não conferem. Digite novamente.';
+          msg.classList.remove('msg-escondida');
+          return;
+        }
+
+        btn.disabled = true;
+        msg.className = 'msg-escondida';
+        msg.textContent = '';
+
+        try {
+          const res = await fetch('/api/redefinir-senha', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token, nova_senha: novaSenha })
+          });
+          const data = await res.json();
+
+          msg.classList.remove('msg-escondida');
+          if (res.ok && data.ok) {
+            msg.className = 'msg-sucesso';
+            msg.innerHTML = 'Senha alterada com sucesso! <a href="/login-motorista">Entrar</a>';
+            document.getElementById('form-redefinir').style.display = 'none';
+          } else {
+            msg.className = 'msg-erro';
+            msg.innerHTML = (data.erro || 'Erro ao redefinir.') + ' <a href="/esqueci-senha-motorista.html">Solicitar novo link</a>';
+          }
+        } catch (err) {
+          msg.className = 'msg-erro';
+          msg.textContent = 'Erro de conexão. Tente novamente.';
+          msg.classList.remove('msg-escondida');
+        }
+        btn.disabled = false;
+      });
+
+      document.querySelectorAll('.toggle-senha').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const id = this.dataset.target;
+          const input = document.getElementById(id);
+          const isPassword = input.type === 'password';
+          input.type = isPassword ? 'text' : 'password';
+          btn.textContent = '👁';
+          btn.title = isPassword ? 'Ocultar senha' : 'Mostrar senha';
+          btn.setAttribute('aria-label', isPassword ? 'Ocultar senha' : 'Mostrar senha');
+        });
+      });
+    }
+  </script>
+</body>
+</html>

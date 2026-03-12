@@ -8,7 +8,7 @@
 const express = require('express');
 const { getDb } = require('../db');
 const { requerLocadorLogado } = require('./auth');
-const { enviarEmailInteresse } = require('../email');
+const { enviarEmailInteresse, enviarEmailDesistencia } = require('../email');
 
 const router = express.Router();
 
@@ -97,6 +97,111 @@ router.post('/', requerMotoristaLogado, (req, res) => {
   } catch (err) {
     console.error('Erro ao registrar interesse:', err);
     res.status(500).json({ erro: 'Erro ao registrar interesse.' });
+  }
+});
+
+// GET /api/interesses/meus - Motorista vê seus interesses
+router.get('/meus', requerMotoristaLogado, (req, res) => {
+  try {
+    const { db } = getDb();
+    const motoristaId = req.session.motoristaId;
+
+    const stmt = db.prepare(`
+      SELECT
+        i.id,
+        i.criado_em,
+        v.id as veiculo_id,
+        v.marca as veiculo_marca,
+        v.modelo as veiculo_modelo,
+        v.placa as veiculo_placa,
+        v.ano as veiculo_ano,
+        v.preco_semanal as veiculo_preco_semanal,
+        l.razao_social as locador_nome,
+        l.whatsapp as locador_whatsapp
+      FROM interesses i
+      JOIN veiculos v ON i.veiculo_id = v.id
+      JOIN locadores l ON v.locador_id = l.id
+      WHERE i.motorista_id = ?
+      ORDER BY i.criado_em DESC
+    `);
+    stmt.bind([motoristaId]);
+
+    const interesses = [];
+    while (stmt.step()) {
+      const row = stmt.getAsObject();
+      interesses.push({
+        id: row.id,
+        criado_em: row.criado_em,
+        veiculo: {
+          id: row.veiculo_id,
+          marca: row.veiculo_marca,
+          modelo: row.veiculo_modelo,
+          placa: row.veiculo_placa,
+          ano: row.veiculo_ano,
+          preco_semanal: row.veiculo_preco_semanal
+        },
+        locador: {
+          razao_social: row.locador_nome,
+          whatsapp: row.locador_whatsapp
+        }
+      });
+    }
+    stmt.free();
+
+    res.json(interesses);
+  } catch (err) {
+    console.error('Erro ao listar interesses do motorista:', err);
+    res.status(500).json({ erro: 'Erro ao listar interesses.' });
+  }
+});
+
+// DELETE /api/interesses/:id - Motorista desfaz interesse
+router.delete('/:id', requerMotoristaLogado, async (req, res) => {
+  try {
+    const { db, save } = getDb();
+    const motoristaId = req.session.motoristaId;
+    const id = parseInt(req.params.id, 10);
+    const { motivo } = req.body || {};
+
+    if (isNaN(id)) {
+      return res.status(400).json({ erro: 'ID inválido.' });
+    }
+
+    const checkStmt = db.prepare(`
+      SELECT i.id, v.id as veiculo_id, v.marca, v.modelo, v.placa,
+             l.email as locador_email, m.nome_completo as motorista_nome
+      FROM interesses i
+      JOIN veiculos v ON i.veiculo_id = v.id
+      JOIN locadores l ON v.locador_id = l.id
+      JOIN motoristas m ON i.motorista_id = m.id
+      WHERE i.id = ? AND i.motorista_id = ?
+    `);
+    checkStmt.bind([id, motoristaId]);
+    let row = null;
+    if (checkStmt.step()) row = checkStmt.getAsObject();
+    checkStmt.free();
+
+    if (!row) {
+      return res.status(404).json({ erro: 'Interesse não encontrado ou não pertence a você.' });
+    }
+
+    db.run('DELETE FROM interesses WHERE id = ? AND motorista_id = ?', [id, motoristaId]);
+    save();
+
+    const veiculoInfo = { marca: row.marca, modelo: row.modelo, placa: row.placa };
+    const motoristaInfo = { nome_completo: row.motorista_nome };
+    if (row.locador_email) {
+      enviarEmailDesistencia(row.locador_email, {
+        veiculo: veiculoInfo,
+        motorista: motoristaInfo,
+        motivo: motivo || 'outro'
+      }).catch(() => {});
+    }
+
+    res.json({ sucesso: true, mensagem: 'Interesse removido.' });
+  } catch (err) {
+    console.error('Erro ao remover interesse:', err);
+    res.status(500).json({ erro: 'Erro ao remover interesse.' });
   }
 });
 

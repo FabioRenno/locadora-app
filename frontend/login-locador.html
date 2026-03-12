@@ -26,13 +26,18 @@
                  autocomplete="email">
         </div>
 
-        <div class="campo">
+        <div class="campo campo-senha">
           <label for="senha">Senha *</label>
-          <input type="password" id="senha" name="senha" required
-                 placeholder="Sua senha"
-                 autocomplete="current-password">
+          <div class="input-senha-wrap">
+            <input type="password" id="senha" name="senha" required
+                   placeholder="Sua senha"
+                   autocomplete="current-password">
+            <button type="button" class="toggle-senha" aria-label="Mostrar senha" data-target="senha" title="Mostrar senha">👁</button>
+          </div>
         </div>
       </fieldset>
+
+      <p class="esqueci-senha"><a href="/esqueci-senha-locador.html">Esqueci minha senha</a></p>
 
       <div class="acoes-formulario">
         <button type="submit" class="botao-enviar">Entrar</button>
@@ -58,6 +63,18 @@
       msgErro.textContent = mensagens[erro];
       msgErro.style.display = 'block';
     }
+
+    document.querySelectorAll('.toggle-senha').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = this.dataset.target;
+        const input = document.getElementById(id);
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+        btn.textContent = '👁';
+        btn.title = isPassword ? 'Ocultar senha' : 'Mostrar senha';
+        btn.setAttribute('aria-label', isPassword ? 'Ocultar senha' : 'Mostrar senha');
+      });
+    });
   </script>
 </body>
 </html>

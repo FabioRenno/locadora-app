@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meus interesses - Locadora App</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="cabecalho cabecalho-painel">
+    <h1>Meus interesses <span id="contador-titulo"></span></h1>
+    <p class="subtitulo">Veículos em que manifestei interesse</p>
+    <p class="sair"><a href="/api/logout">Sair</a></p>
+  </header>
+
+  <main class="conteudo">
+    <p class="voltar"><a href="/painel-motorista">← Voltar ao painel</a></p>
+
+    <div id="msg" class="msg-escondida"></div>
+    <div id="lista-interesses" class="lista-interesses-motorista">
+      <p class="carregando">Carregando...</p>
+    </div>
+  </main>
+
+  <script>
+    const MOTIVOS = [
+      { codigo: 'fechou_outro', texto: 'Fechou com outro locador' },
+      { codigo: 'nao_atende', texto: 'Não atende minhas necessidades' },
+      { codigo: 'desistiu_busca', texto: 'Desisti da busca por enquanto' },
+      { codigo: 'outro', texto: 'Outro motivo' }
+    ];
+
+    async function carregarInteresses() {
+      const lista = document.getElementById('lista-interesses');
+      try {
+        const res = await fetch('/api/interesses/meus', { credentials: 'same-origin' });
+        if (res.status === 401) {
+          window.location.href = '/login-motorista?erro=entrar';
+          return;
+        }
+        const texto = await res.text();
+        let data;
+        try {
+          data = texto ? JSON.parse(texto) : null;
+        } catch (e) {
+          console.error('Resposta não é JSON:', texto?.slice(0, 200));
+          lista.innerHTML = '<p class="msg-erro">Resposta inválida do servidor. Verifique se está logado como motorista. <a href="/painel-motorista">Voltar ao painel</a></p>';
+          return;
+        }
+
+        if (!res.ok || !Array.isArray(data)) {
+          const msg = (data && data.erro) ? data.erro : 'Erro ao carregar interesses.';
+          lista.innerHTML = '<p class="msg-erro">' + escapeHtml(msg) + ' <a href="/painel-motorista">Voltar ao painel</a></p>';
+          return;
+        }
+
+        const interesses = data;
+
+        document.getElementById('contador-titulo').textContent = `(${interesses.length})`;
+
+        if (interesses.length === 0) {
+          lista.innerHTML = `
+            <div class="card-vazio">
+              <p>Você ainda não manifestou interesse em nenhum veículo.</p>
+              <p><a href="/veiculos.html" class="botao botao-motorista">Ver veículos disponíveis</a></p>
+            </div>
+          `;
+          return;
+        }
+
+        lista.innerHTML = interesses.map(i => `
+          <article class="card-interesse-motorista" data-id="${i.id}">
+            <div class="card-interesse-motorista-info">
+              <h3>${escapeHtml(i.veiculo.marca)} ${escapeHtml(i.veiculo.modelo)} (${i.veiculo.ano || '-'})</h3>
+              <p class="detalhe">Placa: ${escapeHtml(i.veiculo.placa)} · ${escapeHtml(i.locador.razao_social)}</p>
+              <p class="preco">R$ ${formatarMoeda(i.veiculo.preco_semanal)}/semana</p>
+              <p class="data-interesse">Interesse em ${formatarData(i.criado_em)}</p>
+            </div>
+            <div class="card-interesse-motorista-acoes">
+              <a href="/veiculo-detalhe.html?id=${i.veiculo.id}" class="botao-menor botao-ver">Ver detalhes</a>
+              <button type="button" class="botao-menor botao-desfazer" data-id="${i.id}">Desfazer interesse</button>
+            </div>
+            <div class="card-interesse-motorista-motivo" hidden>
+              <label for="motivo-${i.id}">Motivo da desistência:</label>
+              <select id="motivo-${i.id}">
+                ${MOTIVOS.map(m => `<option value="${m.codigo}">${escapeHtml(m.texto)}</option>`).join('')}
+              </select>
+              <div class="botoes-motivo">
+                <button type="button" class="botao-menor botao-confirmar-desistir">Confirmar</button>
+                <button type="button" class="botao-menor botao-cancelar-desistir">Cancelar</button>
+              </div>
+            </div>
+          </article>
+        `).join('');
+
+        lista.querySelectorAll('.botao-desfazer').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const card = btn.closest('.card-interesse-motorista');
+            const motivoDiv = card.querySelector('.card-interesse-motorista-motivo');
+            motivoDiv.hidden = false;
+          });
+        });
+
+        lista.querySelectorAll('.botao-cancelar-desistir').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const card = btn.closest('.card-interesse-motorista');
+            card.querySelector('.card-interesse-motorista-motivo').hidden = true;
+          });
+        });
+
+        lista.querySelectorAll('.botao-confirmar-desistir').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const card = btn.closest('.card-interesse-motorista');
+            const id = card.dataset.id;
+            const select = card.querySelector('select');
+            const motivo = select ? select.value : 'outro';
+            await desfazerInteresse(id, motivo, card);
+          });
+        });
+
+      } catch (err) {
+        console.error(err);
+        lista.innerHTML = '<p class="msg-erro">Erro ao carregar interesses. <a href="/painel-motorista">Voltar ao painel</a></p>';
+      }
+    }
+
+    async function desfazerInteresse(id, motivo, cardEl) {
+      try {
+        const res = await fetch(`/api/interesses/${id}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ motivo }),
+          credentials: 'same-origin'
+        });
+        const data = await res.json();
+
+        if (res.ok && data.sucesso) {
+          mostrarMsg('Interesse removido. O locador foi notificado.', 'sucesso');
+          cardEl.remove();
+          const lista = document.getElementById('lista-interesses');
+          const restantes = lista.querySelectorAll('.card-interesse-motorista');
+          document.getElementById('contador-titulo').textContent = `(${restantes.length})`;
+          if (restantes.length === 0) {
+            lista.innerHTML = `
+              <div class="card-vazio">
+                <p>Você ainda não manifestou interesse em nenhum veículo.</p>
+                <p><a href="/veiculos.html" class="botao botao-motorista">Ver veículos disponíveis</a></p>
+              </div>
+            `;
+          }
+        } else {
+          mostrarMsg(data.erro || 'Erro ao remover interesse.', 'erro');
+        }
+      } catch (err) {
+        mostrarMsg('Erro ao remover interesse.', 'erro');
+      }
+    }
+
+    function mostrarMsg(texto, tipo) {
+      const msg = document.getElementById('msg');
+      msg.textContent = texto;
+      msg.className = tipo === 'sucesso' ? 'msg-sucesso' : 'msg-erro';
+      msg.classList.remove('msg-escondida');
+      setTimeout(() => msg.classList.add('msg-escondida'), 4000);
+    }
+
+    function escapeHtml(s) {
+      if (!s) return '';
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    function formatarData(iso) {
+      if (!iso) return '-';
+      const d = new Date(iso);
+      return d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+    }
+
+    function formatarMoeda(n) {
+      return Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    }
+
+    document.addEventListener('DOMContentLoaded', carregarInteresses);
+  </script>
+</body>
+</html>
