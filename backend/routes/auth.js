@@ -10,6 +10,7 @@ const crypto = require('crypto');
 const path = require('path');
 const { getDb } = require('../db');
 const { enviarEmailRecuperacao } = require('../email');
+const { validarEmail, validarSenha } = require('../utils/validacoes');
 
 const router = express.Router();
 const frontendPath = path.join(__dirname, '..', '..', 'frontend');
@@ -38,8 +39,8 @@ router.get('/login-locador', (req, res) => {
 router.post('/api/login', async (req, res) => {
   try {
     const { email, senha } = req.body;
-    if (!email || !senha) {
-      return res.redirect('/login-locador?erro=campos');
+    if (!validarEmail(email) || !senha) {
+      return res.status(400).json({ sucesso: false, erro: 'Preencha um e-mail válido e a senha.' });
     }
 
     const { pool } = getDb();
@@ -50,15 +51,15 @@ router.post('/api/login', async (req, res) => {
     const locador = result.rows[0] || null;
 
     if (!locador || !verificarSenha(senha, locador.senha_hash)) {
-      return res.redirect('/login-locador?erro=credenciais');
+      return res.status(401).json({ sucesso: false, erro: 'E-mail ou senha incorretos. Tente novamente.' });
     }
 
     req.session.locadorId = locador.id;
     req.session.locadorNome = locador.razao_social;
-    res.redirect('/painel-locador');
+    res.json({ sucesso: true, redirecionar: '/painel-locador' });
   } catch (err) {
     console.error('Erro ao fazer login:', err);
-    res.redirect('/login-locador?erro=servidor');
+    res.status(500).json({ sucesso: false, erro: 'Erro no servidor. Tente novamente mais tarde.' });
   }
 });
 
@@ -100,8 +101,8 @@ router.get('/login-motorista', (req, res) => {
 router.post('/api/login-motorista', async (req, res) => {
   try {
     const { email, senha } = req.body;
-    if (!email || !senha) {
-      return res.redirect('/login-motorista?erro=campos');
+    if (!validarEmail(email) || !senha) {
+      return res.status(400).json({ sucesso: false, erro: 'Preencha um e-mail válido e a senha.' });
     }
 
     const { pool } = getDb();
@@ -112,15 +113,15 @@ router.post('/api/login-motorista', async (req, res) => {
     const motorista = result.rows[0] || null;
 
     if (!motorista || !verificarSenha(senha, motorista.senha_hash)) {
-      return res.redirect('/login-motorista?erro=credenciais');
+      return res.status(401).json({ sucesso: false, erro: 'E-mail ou senha incorretos. Tente novamente.' });
     }
 
     req.session.motoristaId = motorista.id;
     req.session.motoristaNome = motorista.nome_completo;
-    res.redirect('/painel-motorista');
+    res.json({ sucesso: true, redirecionar: '/painel-motorista' });
   } catch (err) {
     console.error('Erro ao fazer login motorista:', err);
-    res.redirect('/login-motorista?erro=servidor');
+    res.status(500).json({ sucesso: false, erro: 'Erro no servidor. Tente novamente mais tarde.' });
   }
 });
 
@@ -137,8 +138,8 @@ function hashSenha(senha) {
 router.post('/api/recuperar-senha', async (req, res) => {
   try {
     const { email, tipo } = req.body;
-    if (!email || !tipo) {
-      return res.status(400).json({ ok: false, erro: 'E-mail e tipo são obrigatórios.' });
+    if (!validarEmail(email) || !tipo) {
+      return res.status(400).json({ ok: false, erro: 'E-mail válido e tipo são obrigatórios.' });
     }
     if (tipo !== 'locador' && tipo !== 'motorista') {
       return res.status(400).json({ ok: false, erro: 'Tipo inválido.' });
@@ -182,11 +183,8 @@ router.post('/api/recuperar-senha', async (req, res) => {
 router.post('/api/redefinir-senha', async (req, res) => {
   try {
     const { token, nova_senha } = req.body;
-    if (!token || !nova_senha) {
-      return res.status(400).json({ ok: false, erro: 'Token e nova senha são obrigatórios.' });
-    }
-    if (nova_senha.length < 6) {
-      return res.status(400).json({ ok: false, erro: 'A senha deve ter no mínimo 6 caracteres.' });
+    if (!token || !validarSenha(nova_senha)) {
+      return res.status(400).json({ ok: false, erro: 'Token e nova senha (mínimo 6 caracteres) são obrigatórios.' });
     }
 
     const { pool } = getDb();

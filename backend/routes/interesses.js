@@ -16,7 +16,7 @@ function requerMotoristaLogado(req, res, next) {
   if (req.session && req.session.motoristaId) {
     next();
   } else {
-    res.status(401).json({ erro: 'Faça login como motorista para manifestar interesse.' });
+    res.status(401).json({ sucesso: false, erro: 'Faça login como motorista para manifestar interesse.' });
   }
 }
 
@@ -27,17 +27,17 @@ router.post('/', requerMotoristaLogado, async (req, res) => {
     const { veiculo_id } = req.body;
 
     if (!veiculo_id) {
-      return res.status(400).json({ erro: 'Informe o veículo.' });
+      return res.status(400).json({ sucesso: false, erro: 'Informe o veículo.' });
     }
 
     const veiculoId = parseInt(veiculo_id, 10);
     if (isNaN(veiculoId)) {
-      return res.status(400).json({ erro: 'ID do veículo inválido.' });
+      return res.status(400).json({ sucesso: false, erro: 'ID do veículo inválido.' });
     }
 
     const veiculoResult = await pool.query('SELECT id FROM veiculos WHERE id = $1', [veiculoId]);
     if (veiculoResult.rows.length === 0) {
-      return res.status(404).json({ erro: 'Veículo não encontrado.' });
+      return res.status(404).json({ sucesso: false, erro: 'Veículo não encontrado.' });
     }
 
     const duplicadoResult = await pool.query(
@@ -45,7 +45,7 @@ router.post('/', requerMotoristaLogado, async (req, res) => {
       [motoristaId, veiculoId]
     );
     if (duplicadoResult.rows.length > 0) {
-      return res.status(400).json({ erro: 'Você já manifestou interesse neste veículo.' });
+      return res.status(400).json({ sucesso: false, erro: 'Você já manifestou interesse neste veículo.' });
     }
 
     await pool.query(
@@ -78,7 +78,7 @@ router.post('/', requerMotoristaLogado, async (req, res) => {
     res.status(201).json({ sucesso: true, mensagem: 'Interesse registrado! O locador entrará em contato.' });
   } catch (err) {
     console.error('Erro ao registrar interesse:', err);
-    res.status(500).json({ erro: 'Erro ao registrar interesse.' });
+    res.status(500).json({ sucesso: false, erro: 'Erro ao registrar interesse.' });
   }
 });
 
@@ -127,7 +127,7 @@ router.get('/meus', requerMotoristaLogado, async (req, res) => {
     res.json(interesses);
   } catch (err) {
     console.error('Erro ao listar interesses do motorista:', err);
-    res.status(500).json({ erro: 'Erro ao listar interesses.' });
+    res.status(500).json({ sucesso: false, erro: 'Erro ao listar interesses.' });
   }
 });
 
@@ -139,7 +139,7 @@ router.delete('/:id', requerMotoristaLogado, async (req, res) => {
     const { motivo } = req.body || {};
 
     if (isNaN(id)) {
-      return res.status(400).json({ erro: 'ID inválido.' });
+      return res.status(400).json({ sucesso: false, erro: 'ID inválido.' });
     }
 
     const checkResult = await pool.query(
@@ -155,7 +155,7 @@ router.delete('/:id', requerMotoristaLogado, async (req, res) => {
     const row = checkResult.rows[0];
 
     if (!row) {
-      return res.status(404).json({ erro: 'Interesse não encontrado ou não pertence a você.' });
+      return res.status(404).json({ sucesso: false, erro: 'Interesse não encontrado ou não pertence a você.' });
     }
 
     await pool.query('DELETE FROM interesses WHERE id = $1 AND motorista_id = $2', [id, motoristaId]);
@@ -171,7 +171,7 @@ router.delete('/:id', requerMotoristaLogado, async (req, res) => {
     res.json({ sucesso: true, mensagem: 'Interesse removido.' });
   } catch (err) {
     console.error('Erro ao remover interesse:', err);
-    res.status(500).json({ erro: 'Erro ao remover interesse.' });
+    res.status(500).json({ sucesso: false, erro: 'Erro ao remover interesse.' });
   }
 });
 
@@ -242,7 +242,7 @@ router.get('/', requerLocadorLogado, async (req, res) => {
     res.json(interesses);
   } catch (err) {
     console.error('Erro ao listar interesses:', err);
-    res.status(500).json({ erro: 'Erro ao listar interesses.' });
+    res.status(500).json({ sucesso: false, erro: 'Erro ao listar interesses.' });
   }
 });
 

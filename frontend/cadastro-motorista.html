@@ -124,17 +124,75 @@
     </form>
   </main>
 
+  <script src="js/validacoes.js"></script>
   <script>
     const form = document.querySelector('.formulario');
-    form.addEventListener('submit', function(e) {
-      const senha = document.getElementById('senha').value;
+    const btnSubmit = document.querySelector('.botao-enviar');
+    const msgErroForm = document.getElementById('msg-erro-senha');
+
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      Validacoes.limparTodosErros(form);
+      
+      let temErros = false;
+      const cpfInput = document.getElementById('cpf');
+      const emailInput = document.getElementById('email');
+      const telefoneInput = document.getElementById('telefone');
+      const whatsappInput = document.getElementById('whatsapp');
+      const senhaInput = document.getElementById('senha');
+      const cepInput = document.getElementById('cep');
+
+      if (!Validacoes.cpf(cpfInput.value)) { Validacoes.mostrarErroInput(cpfInput, 'CPF inválido (11 números)'); temErros = true; }
+      if (!Validacoes.email(emailInput.value)) { Validacoes.mostrarErroInput(emailInput, 'E-mail inválido'); temErros = true; }
+      if (!Validacoes.telefone(telefoneInput.value)) { Validacoes.mostrarErroInput(telefoneInput, 'Formato: (11) 99999-9999'); temErros = true; }
+      if (!Validacoes.telefone(whatsappInput.value)) { Validacoes.mostrarErroInput(whatsappInput, 'Formato: (11) 99999-9999'); temErros = true; }
+      if (cepInput.value && !Validacoes.cep(cepInput.value)) { Validacoes.mostrarErroInput(cepInput, 'CEP inválido'); temErros = true; }
+      if (!Validacoes.senha(senhaInput.value)) { Validacoes.mostrarErroInput(senhaInput, 'No mínimo 6 caracteres'); temErros = true; }
+
+      const senha = senhaInput.value;
       const confirmar = document.getElementById('confirmar_senha').value;
-      const msgErro = document.getElementById('msg-erro-senha');
+      
       if (senha !== confirmar) {
-        e.preventDefault();
-        msgErro.textContent = 'As senhas não conferem. Digite novamente.';
-        msgErro.style.display = 'block';
+        msgErroForm.textContent = 'As senhas não conferem. Digite novamente.';
+        msgErroForm.style.display = 'block';
         return;
+      }
+
+      if (temErros) {
+        msgErroForm.textContent = 'Por favor, corrija os erros apontados nos campos acima.';
+        msgErroForm.style.display = 'block';
+        return;
+      }
+      
+      msgErroForm.style.display = 'none';
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = 'Cadastrando...';
+
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      try {
+        const res = await fetch('/api/motoristas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        
+        const json = await res.json();
+        
+        if (res.ok && json.sucesso) {
+          window.location.href = '/?cadastro=motorista';
+        } else {
+          msgErroForm.textContent = json.erro || 'Erro ao cadastrar. Verifique os dados.';
+          msgErroForm.style.display = 'block';
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = 'Cadastrar';
+        }
+      } catch (err) {
+        msgErroForm.textContent = 'Erro ao conectar. Tente novamente mais tarde.';
+        msgErroForm.style.display = 'block';
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Cadastrar';
       }
     });
 

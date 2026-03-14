@@ -105,6 +105,7 @@
     </form>
   </main>
 
+  <script src="js/validacoes.js"></script>
   <script>
     const params = new URLSearchParams(window.location.search);
     const idVeiculo = params.get('id');
@@ -151,6 +152,29 @@
 
     document.getElementById('form-veiculo').addEventListener('submit', async (e) => {
       e.preventDefault();
+      
+      const formElement = e.target;
+      Validacoes.limparTodosErros(formElement);
+      
+      let temErros = false;
+      const placaInput = document.getElementById('placa');
+      const anoInput = document.getElementById('ano');
+
+      if (!Validacoes.placa(placaInput.value.trim().toUpperCase())) {
+        Validacoes.mostrarErroInput(placaInput, 'Placa inválida. Use ABC-1234 ou ABC1D23');
+        temErros = true;
+      }
+      
+      const anoOriginal = anoInput.value;
+      if (anoOriginal < 1990 || anoOriginal > new Date().getFullYear() + 1) {
+        Validacoes.mostrarErroInput(anoInput, 'Ano irreal');
+        temErros = true;
+      }
+
+      if (temErros) {
+        mostrarMsg('Corrija os campos em vermelho', 'erro');
+        return;
+      }
 
       const btn = document.getElementById('btn-submit');
       btn.disabled = true;

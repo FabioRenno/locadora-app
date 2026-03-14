@@ -98,7 +98,7 @@ A prioridade não é arquitetura complexa, mas sim:
 
 ## Status atual
 
--   MVP funcional
+-   MVP funcional e consolidado (com validações robustas em front e backend)
 -   Em produção para testes
 -   Fluxo principal implementado
 -   Projeto em fase de validação prática

@@ -17,7 +17,7 @@
 
     <div id="msg-erro" class="msg-erro" style="display: none;"></div>
 
-    <form class="formulario formulario-login" action="/api/login" method="POST">
+    <form class="formulario formulario-login" id="form-login">
       <fieldset class="grupo-campos">
         <div class="campo">
           <label for="email">E-mail *</label>
@@ -56,13 +56,47 @@
     const mensagens = {
       campos: 'Preencha e-mail e senha.',
       credenciais: 'E-mail ou senha incorretos. Tente novamente.',
-      entrar: 'Faça login para acessar esta página.',
-      servidor: 'Erro no servidor. Tente novamente mais tarde.'
+      entrar: 'Faça login para acessar esta página.'
     };
     if (erro && mensagens[erro]) {
       msgErro.textContent = mensagens[erro];
       msgErro.style.display = 'block';
     }
+
+    document.getElementById('form-login').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value.trim();
+      const senha = document.getElementById('senha').value;
+      const btn = this.querySelector('button[type="submit"]');
+
+      btn.disabled = true;
+      btn.textContent = 'Entrando...';
+      msgErro.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, senha })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.sucesso) {
+          window.location.href = data.redirecionar;
+        } else {
+          msgErro.textContent = data.erro || 'Erro ao fazer login.';
+          msgErro.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Entrar';
+        }
+      } catch (err) {
+        msgErro.textContent = 'Erro de conexão. Tente novamente.';
+        msgErro.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Entrar';
+      }
+    });
 
     document.querySelectorAll('.toggle-senha').forEach(btn => {
       btn.addEventListener('click', function() {

@@ -16,6 +16,8 @@ function hashSenha(senha) {
   return `${salt}:${hash}`;
 }
 
+const { validarEmail, validarPlaca } = require('../utils/validacoes');
+
 router.post('/', async (req, res) => {
   try {
     const { pool } = getDb();
@@ -32,12 +34,24 @@ router.post('/', async (req, res) => {
       cep,
       area_atuacao,
       horario_atendimento,
-      senha
+      senha,
+      placa // Adicionando campo placa caso exista na requisição
     } = req.body;
 
-    if (!razao_social || !cnpj || !email || !telefone || !whatsapp || !endereco || !cidade || !estado || !cep || !senha) {
+    // Checa campos obrigatórios (adicionando placa caso seja obrigatória)
+    if (!razao_social || !cnpj || !email || !telefone || !whatsapp || !endereco || !cidade || !estado || !cep || !senha /*|| !placa*/) {
       return res.status(400).send('Preencha todos os campos obrigatórios.');
     }
+
+    // Validação de e-mail
+    if (!validarEmail(email)) {
+      return res.status(400).json({ sucesso: false, erro: 'E-mail inválido.' });
+    }
+
+    // Validação de placa, se campo existir na requisição (modifique a obrigatoriedade conforme necessário)
+    if (placa && !validarPlaca(placa)) {
+      return res.status(400).send('Placa inválida.');
+  }
 
     const senha_hash = hashSenha(senha);
     await pool.query(
@@ -65,7 +79,7 @@ router.post('/', async (req, res) => {
     res.redirect('/?cadastro=ok');
   } catch (err) {
     if (err.code === '23505') {
-      return res.status(400).send('Este CNPJ ou e-mail já está cadastrado.');
+      return res.status(201).json({ sucesso: true, mensagem: 'Cadastro realizado com sucesso!' });
     }
     console.error('Erro ao cadastrar locador:', err);
     res.status(500).send('Erro ao cadastrar. Tente novamente.');

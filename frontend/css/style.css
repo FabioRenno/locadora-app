@@ -945,3 +945,10 @@ body {
 .card-interesse-detalhes p {
   margin: 0 0 0.5rem;
 }
+
+/* Validacoes de Input */
+.input-invalido {
+  border-color: #dc3545 !important;
+  background-color: #fff8f8;
+}
+
