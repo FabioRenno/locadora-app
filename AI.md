@@ -1,41 +1,19 @@
+# INÍCIO PARA IA
+
+Se você é uma IA trabalhando neste repositório, siga os passos abaixo antes de sugerir qualquer mudança no projeto.
+
+## Ordem de leitura obrigatória
+
+1. Leia primeiro **AI_ENTRYPOINT.md**
+2. Em seguida leia **PROJECT_CONTEXT.md**
+3. Depois leia **ROADMAP.md**
+4. Por fim leia **.cursor/rules.md**
+
+Somente depois de entender o contexto completo do projeto sugira mudanças ou melhorias.
+
+---
+
 # AI Guide — Locadora App
-
-Se você é uma IA analisando este repositório, comece por aqui.
-
----
-
-## Passo 1 — Ler o arquivo de entrada
-
-Leia primeiro:
-
-AI_ENTRYPOINT.md
-
-Esse arquivo contém:
-
-- contexto do projeto
-- stack atual
-- fluxo principal do sistema
-- prioridades do MVP
-- regras de desenvolvimento
-
----
-
-## Passo 2 — Ler contexto detalhado
-
-Depois leia os seguintes arquivos:
-
-- PROJECT_CONTEXT.md
-- ROADMAP.md
-- .cursor/rules.md
-
-Esses arquivos explicam:
-
-- o problema que o produto resolve
-- o estágio atual do projeto
-- a direção de evolução do sistema
-- como a IA deve trabalhar neste repositório
-
----
 
 ## Sobre o projeto
 
@@ -44,22 +22,26 @@ O **Locadora App** é um marketplace que conecta:
 - locadores de veículos
 - motoristas de aplicativo
 
-O sistema está em **fase de MVP funcional em produção para testes**.
+O sistema está atualmente em **fase de MVP funcional em produção para testes**.
 
-O objetivo do produto é facilitar a conexão inicial entre quem possui veículos disponíveis e quem precisa de um carro para trabalhar com aplicativos de mobilidade.
+O objetivo do produto é **facilitar a conexão inicial entre quem possui veículos disponíveis e quem precisa de um carro para trabalhar com aplicativos de mobilidade**.
 
 ---
 
 ## Fluxo principal do produto
 
-1. locador cria conta
-2. locador publica veículo
-3. motorista cria conta
-4. motorista visualiza veículos disponíveis
-5. motorista manifesta interesse
-6. locador visualiza interessados no painel
+O fluxo principal do sistema é:
 
-Esse fluxo é o núcleo do produto e deve ser preservado.
+1. locador cria conta  
+2. locador publica veículo  
+3. motorista cria conta  
+4. motorista visualiza veículos disponíveis  
+5. motorista manifesta interesse  
+6. locador visualiza interessados no painel  
+
+Este fluxo é o **núcleo do produto** e deve ser preservado.
+
+Qualquer mudança no sistema deve respeitar esse comportamento.
 
 ---
 
@@ -79,6 +61,7 @@ Evitar:
 - introdução de arquitetura complexa prematura
 - alterações que quebrem o fluxo principal
 - mudanças grandes sem explicar impacto
+- adicionar dependências sem justificativa
 
 ---
 

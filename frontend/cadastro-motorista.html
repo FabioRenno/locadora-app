@@ -77,6 +77,10 @@
       <fieldset class="grupo-campos">
         <legend>Localização</legend>
         <div class="campo">
+          <label for="cep">CEP</label>
+          <input type="text" id="cep" name="cep" placeholder="00000-000 (opcional)" maxlength="9" inputmode="numeric">
+        </div>
+        <div class="campo">
           <label for="cidade">Cidade *</label>
           <input type="text" id="cidade" name="cidade" required placeholder="Ex: São Paulo">
         </div>
@@ -85,12 +89,17 @@
           <input type="text" id="estado" name="estado" required placeholder="Ex: SP" maxlength="2" pattern="[A-Za-z]{2}">
         </div>
         <div class="campo">
-          <label for="endereco">Endereço</label>
-          <input type="text" id="endereco" name="endereco" placeholder="Rua, número, complemento (opcional)">
+          <label for="endereco_rua">Endereço</label>
+          <input type="text" id="endereco_rua" placeholder="Rua / Avenida (opcional)">
+          <input type="hidden" id="endereco" name="endereco">
         </div>
         <div class="campo">
-          <label for="cep">CEP</label>
-          <input type="text" id="cep" name="cep" placeholder="00000-000 (opcional)" maxlength="9" inputmode="numeric">
+          <label for="numero">Número</label>
+          <input type="text" id="numero" placeholder="Número (opcional)">
+        </div>
+        <div class="campo">
+          <label for="complemento">Complemento</label>
+          <input type="text" id="complemento" placeholder="Apto, bloco, sala (opcional)">
         </div>
         <div class="campo">
           <label for="apps_que_usa">Apps que usa</label>
@@ -126,9 +135,51 @@
 
   <script src="js/validacoes.js"></script>
   <script>
+    function configurarBuscaCepMotorista() {
+      const cepInput = document.getElementById('cep');
+      const cidadeInput = document.getElementById('cidade');
+      const estadoInput = document.getElementById('estado');
+      const enderecoRuaInput = document.getElementById('endereco_rua');
+
+      if (!cepInput) return;
+
+      cepInput.addEventListener('blur', async function () {
+        const cepLimpo = this.value.replace(/\D/g, '');
+
+        if (!cepLimpo) return;
+        if (!Validacoes.cep(cepLimpo)) {
+          Validacoes.mostrarErroInput(cepInput, 'CEP inválido');
+          return;
+        }
+
+        try {
+          const resposta = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+          if (!resposta.ok) return;
+
+          const dados = await resposta.json();
+          if (dados.erro) return;
+
+          if (dados.localidade && !cidadeInput.value) {
+            cidadeInput.value = dados.localidade;
+          }
+          if (dados.uf && !estadoInput.value) {
+            estadoInput.value = dados.uf;
+          }
+          const logradouroBase = [dados.logradouro, dados.bairro].filter(Boolean).join(' - ');
+          if (logradouroBase && !enderecoRuaInput.value) {
+            enderecoRuaInput.value = `${logradouroBase}`;
+          }
+        } catch (e) {
+          // Se der erro na consulta, apenas não preenche nada.
+        }
+      });
+    }
+
     const form = document.querySelector('.formulario');
     const btnSubmit = document.querySelector('.botao-enviar');
     const msgErroForm = document.getElementById('msg-erro-senha');
+
+    configurarBuscaCepMotorista();
 
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -141,6 +192,10 @@
       const whatsappInput = document.getElementById('whatsapp');
       const senhaInput = document.getElementById('senha');
       const cepInput = document.getElementById('cep');
+      const enderecoRuaInput = document.getElementById('endereco_rua');
+      const numeroInput = document.getElementById('numero');
+      const complementoInput = document.getElementById('complemento');
+      const enderecoHidden = document.getElementById('endereco');
 
       if (!Validacoes.cpf(cpfInput.value)) { Validacoes.mostrarErroInput(cpfInput, 'CPF inválido (11 números)'); temErros = true; }
       if (!Validacoes.email(emailInput.value)) { Validacoes.mostrarErroInput(emailInput, 'E-mail inválido'); temErros = true; }
@@ -163,6 +218,12 @@
         msgErroForm.style.display = 'block';
         return;
       }
+
+      const partesEndereco = [];
+      if (enderecoRuaInput.value.trim()) partesEndereco.push(enderecoRuaInput.value.trim());
+      if (numeroInput.value.trim()) partesEndereco.push(`Nº ${numeroInput.value.trim()}`);
+      if (complementoInput.value.trim()) partesEndereco.push(complementoInput.value.trim());
+      enderecoHidden.value = partesEndereco.join(', ');
       
       msgErroForm.style.display = 'none';
       btnSubmit.disabled = true;

@@ -61,8 +61,24 @@
         <legend>Endereço</legend>
 
         <div class="campo">
-          <label for="endereco">Endereço completo *</label>
-          <input type="text" id="endereco" name="endereco" required>
+          <label for="cep">CEP *</label>
+          <input type="text" id="cep" name="cep" required>
+        </div>
+
+        <div class="campo">
+          <label for="endereco_rua">Endereço completo *</label>
+          <input type="text" id="endereco_rua" required>
+          <input type="hidden" id="endereco" name="endereco">
+        </div>
+
+        <div class="campo">
+          <label for="numero">Número *</label>
+          <input type="text" id="numero" required>
+        </div>
+
+        <div class="campo">
+          <label for="complemento">Complemento</label>
+          <input type="text" id="complemento">
         </div>
 
         <div class="linha-campos">
@@ -74,11 +90,6 @@
             <label for="estado">Estado (UF) *</label>
             <input type="text" id="estado" name="estado" required maxlength="2">
           </div>
-        </div>
-
-        <div class="campo">
-          <label for="cep">CEP *</label>
-          <input type="text" id="cep" name="cep" required>
         </div>
       </fieldset>
 
@@ -112,6 +123,42 @@
   </main>
 
   <script>
+    function configurarBuscaCepLocadorEdicao() {
+      const cepInput = document.getElementById('cep');
+      const cidadeInput = document.getElementById('cidade');
+      const estadoInput = document.getElementById('estado');
+      const enderecoRuaInput = document.getElementById('endereco_rua');
+
+      if (!cepInput) return;
+
+      cepInput.addEventListener('blur', async function () {
+        const cepLimpo = this.value.replace(/\D/g, '');
+        if (!cepLimpo || cepLimpo.length !== 8) {
+          return;
+        }
+
+        try {
+          const resposta = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+          if (!resposta.ok) return;
+          const dados = await resposta.json();
+          if (dados.erro) return;
+
+          if (dados.localidade && !cidadeInput.value) {
+            cidadeInput.value = dados.localidade;
+          }
+          if (dados.uf && !estadoInput.value) {
+            estadoInput.value = dados.uf;
+          }
+          const logradouroBase = [dados.logradouro, dados.bairro].filter(Boolean).join(' - ');
+          if (logradouroBase && !enderecoRuaInput.value) {
+            enderecoRuaInput.value = `${logradouroBase}`;
+          }
+        } catch (e) {
+          // Não quebra o formulário se a consulta falhar.
+        }
+      });
+    }
+
     async function carregarDados() {
       try {
         const res = await fetch('/api/locadores/me', { credentials: 'same-origin' });
@@ -126,6 +173,7 @@
         document.getElementById('email').value = d.email || '';
         document.getElementById('telefone').value = d.telefone || '';
         document.getElementById('whatsapp').value = d.whatsapp || '';
+        document.getElementById('endereco_rua').value = d.endereco || '';
         document.getElementById('endereco').value = d.endereco || '';
         document.getElementById('cidade').value = d.cidade || '';
         document.getElementById('estado').value = d.estado || '';
@@ -159,6 +207,17 @@
         area_atuacao: document.getElementById('area_atuacao').value.trim(),
         horario_atendimento: document.getElementById('horario_atendimento').value.trim()
       };
+
+      const enderecoRua = document.getElementById('endereco_rua').value.trim();
+      const numero = document.getElementById('numero').value.trim();
+      const complemento = document.getElementById('complemento').value.trim();
+      const partesEndereco = [];
+      if (enderecoRua) partesEndereco.push(enderecoRua);
+      if (numero) partesEndereco.push(`Nº ${numero}`);
+      if (complemento) partesEndereco.push(complemento);
+      if (partesEndereco.length > 0) {
+        dados.endereco = partesEndereco.join(', ');
+      }
 
       try {
         const res = await fetch('/api/locadores/me', {
@@ -201,7 +260,10 @@
       }
     });
 
-    document.addEventListener('DOMContentLoaded', carregarDados);
+    document.addEventListener('DOMContentLoaded', () => {
+      carregarDados();
+      configurarBuscaCepLocadorEdicao();
+    });
   </script>
 </body>
 </html>

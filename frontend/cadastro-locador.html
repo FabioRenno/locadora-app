@@ -86,10 +86,32 @@
         <legend>Endereço</legend>
 
         <div class="campo">
-          <label for="endereco">Endereço completo *</label>
-          <input type="text" id="endereco" name="endereco" required
-                 placeholder="Rua, número, complemento">
-          <!-- name="endereco" → Backend salva o endereço da sede -->
+          <label for="cep">CEP *</label>
+          <input type="text" id="cep" name="cep" required
+                 placeholder="00000-000"
+                 maxlength="9"
+                 inputmode="numeric">
+          <!-- name="cep" → Backend valida e completa endereço (se integrar API) -->
+        </div>
+
+        <div class="campo">
+          <label for="endereco_rua">Endereço *</label>
+          <input type="text" id="endereco_rua" required
+                 placeholder="Rua / Avenida">
+          <input type="hidden" id="endereco" name="endereco">
+          <!-- endereco_rua + número + complemento → juntamos em "endereco" antes de enviar -->
+        </div>
+
+        <div class="campo">
+          <label for="numero">Número *</label>
+          <input type="text" id="numero" required
+                 placeholder="Número">
+        </div>
+
+        <div class="campo">
+          <label for="complemento">Complemento</label>
+          <input type="text" id="complemento"
+                 placeholder="Apto, bloco, sala (opcional)">
         </div>
 
         <div class="linha-campos">
@@ -107,15 +129,6 @@
                    pattern="[A-Za-z]{2}">
             <!-- name="estado" → Backend complementa localização -->
           </div>
-        </div>
-
-        <div class="campo">
-          <label for="cep">CEP *</label>
-          <input type="text" id="cep" name="cep" required
-                 placeholder="00000-000"
-                 maxlength="9"
-                 inputmode="numeric">
-          <!-- name="cep" → Backend valida e completa endereço (se integrar API) -->
         </div>
       </fieldset>
 
@@ -172,7 +185,46 @@
   </main>
 
   <script>
+    function configurarBuscaCepLocadorCadastro() {
+      const cepInput = document.getElementById('cep');
+      const cidadeInput = document.getElementById('cidade');
+      const estadoInput = document.getElementById('estado');
+      const enderecoRuaInput = document.getElementById('endereco_rua');
+
+      if (!cepInput) return;
+
+      cepInput.addEventListener('blur', async function () {
+        const cepLimpo = this.value.replace(/\D/g, '');
+        if (!cepLimpo) return;
+        if (cepLimpo.length !== 8) {
+          return;
+        }
+
+        try {
+          const resposta = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+          if (!resposta.ok) return;
+          const dados = await resposta.json();
+          if (dados.erro) return;
+
+          if (dados.localidade && !cidadeInput.value) {
+            cidadeInput.value = dados.localidade;
+          }
+          if (dados.uf && !estadoInput.value) {
+            estadoInput.value = dados.uf;
+          }
+          const logradouroBase = [dados.logradouro, dados.bairro].filter(Boolean).join(' - ');
+          if (logradouroBase && !enderecoRuaInput.value) {
+            enderecoRuaInput.value = `${logradouroBase}`;
+          }
+        } catch (e) {
+          // Falha silenciosa na consulta de CEP
+        }
+      });
+    }
+
     const form = document.querySelector('.formulario-locador');
+    configurarBuscaCepLocadorCadastro();
+
     form.addEventListener('submit', function(e) {
       const senha = document.getElementById('senha').value;
       const confirmar = document.getElementById('confirmar_senha').value;
@@ -183,6 +235,16 @@
         msgErro.style.display = 'block';
         return;
       }
+
+      const enderecoRua = document.getElementById('endereco_rua').value.trim();
+      const numero = document.getElementById('numero').value.trim();
+      const complemento = document.getElementById('complemento').value.trim();
+      const enderecoHidden = document.getElementById('endereco');
+      const partesEndereco = [];
+      if (enderecoRua) partesEndereco.push(enderecoRua);
+      if (numero) partesEndereco.push(`Nº ${numero}`);
+      if (complemento) partesEndereco.push(complemento);
+      enderecoHidden.value = partesEndereco.join(', ');
     });
 
     document.querySelectorAll('.toggle-senha').forEach(btn => {
