@@ -9,7 +9,7 @@
 <body>
   <header class="cabecalho cabecalho-painel">
     <h1>Painel do Motorista</h1>
-    <p class="subtitulo">Bem-vindo ao seu painel</p>
+    <p class="subtitulo" id="saudacao">Bem-vindo, Motorista</p>
     <p class="sair"><a href="/api/logout">Sair</a></p>
   </header>
 
@@ -25,7 +25,27 @@
         <span>Meus interesses</span>
         <span class="descricao">Veículos em que manifestei interesse</span>
       </a>
+      <a href="/editar-motorista.html" class="botao botao-painel">
+        <span class="icone">👤</span>
+        <span>Meu cadastro</span>
+        <span class="descricao">Atualizar dados ou excluir conta</span>
+      </a>
     </nav>
   </main>
+
+  <script>
+    async function carregarSaudacaoMotorista() {
+      try {
+        const sessRes = await fetch('/api/session', { credentials: 'same-origin' });
+        const sess = await sessRes.json();
+        if (sess.logado && sess.tipo === 'motorista') {
+          document.getElementById('saudacao').textContent = 'Bem-vindo, ' + (sess.nome || 'Motorista');
+        }
+      } catch (e) {
+        // Se der erro, mantém o texto padrão
+      }
+    }
+    document.addEventListener('DOMContentLoaded', carregarSaudacaoMotorista);
+  </script>
 </body>
 </html>

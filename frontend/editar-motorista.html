@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meu cadastro de Motorista - Locadora App</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="cabecalho">
+    <h1>Meu cadastro de Motorista</h1>
+    <p class="subtitulo">Atualize seus dados pessoais e de contato</p>
+  </header>
+
+  <main class="conteudo">
+    <p class="voltar">
+      <a href="/painel-motorista">← Voltar para o painel</a>
+    </p>
+
+    <form id="form-motorista" class="formulario">
+      <fieldset class="grupo-campos">
+        <legend>Dados pessoais</legend>
+        <div class="campo">
+          <label for="nome_completo">Nome completo *</label>
+          <input type="text" id="nome_completo" name="nome_completo" required maxlength="150">
+        </div>
+        <div class="campo">
+          <label for="cpf">CPF *</label>
+          <input type="text" id="cpf" name="cpf" required disabled>
+          <small>O CPF não pode ser alterado por aqui.</small>
+        </div>
+        <div class="campo">
+          <label for="rg">RG *</label>
+          <input type="text" id="rg" name="rg" required maxlength="20">
+        </div>
+        <div class="campo">
+          <label for="data_nascimento">Data de nascimento *</label>
+          <input type="date" id="data_nascimento" name="data_nascimento" required>
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo-campos">
+        <legend>Contato</legend>
+        <div class="campo">
+          <label for="email">E-mail *</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+        <div class="campo">
+          <label for="telefone">Telefone *</label>
+          <input type="tel" id="telefone" name="telefone" required>
+        </div>
+        <div class="campo">
+          <label for="whatsapp">WhatsApp *</label>
+          <input type="tel" id="whatsapp" name="whatsapp" required>
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo-campos">
+        <legend>CNH</legend>
+        <div class="campo">
+          <label for="numero_cnh">Número da CNH *</label>
+          <input type="text" id="numero_cnh" name="numero_cnh" required>
+        </div>
+        <div class="campo">
+          <label for="categoria_cnh">Categoria *</label>
+          <input type="text" id="categoria_cnh" name="categoria_cnh" required maxlength="5">
+        </div>
+        <div class="campo campo-checkbox">
+          <label>
+            <input type="checkbox" id="ear" name="ear" value="sim">
+            EAR (Exerce Atividade Remunerada)
+          </label>
+        </div>
+        <div class="campo">
+          <label for="validade_cnh">Validade da CNH *</label>
+          <input type="date" id="validade_cnh" name="validade_cnh" required>
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo-campos">
+        <legend>Localização</legend>
+        <div class="campo">
+          <label for="cidade">Cidade *</label>
+          <input type="text" id="cidade" name="cidade" required>
+        </div>
+        <div class="campo">
+          <label for="estado">Estado (UF) *</label>
+          <input type="text" id="estado" name="estado" required maxlength="2">
+        </div>
+        <div class="campo">
+          <label for="endereco">Endereço</label>
+          <input type="text" id="endereco" name="endereco">
+        </div>
+        <div class="campo">
+          <label for="cep">CEP</label>
+          <input type="text" id="cep" name="cep">
+        </div>
+        <div class="campo">
+          <label for="apps_que_usa">Apps que usa</label>
+          <input type="text" id="apps_que_usa" name="apps_que_usa">
+        </div>
+      </fieldset>
+
+      <div id="msg-erro" class="msg-erro" style="display: none;"></div>
+      <div id="msg-sucesso" class="msg-sucesso" style="display: none;"></div>
+
+      <div class="acoes-formulario">
+        <button type="submit" class="botao-enviar">Salvar alterações</button>
+      </div>
+    </form>
+
+    <section class="secao-perigosa">
+      <h2>Encerrar conta</h2>
+      <p>Se você não deseja mais utilizar o Locadora App, pode desativar sua conta. Seus interesses serão removidos.</p>
+      <button id="btn-excluir" class="botao botao-perigo">Excluir minha conta</button>
+    </section>
+  </main>
+
+  <script>
+    async function carregarDados() {
+      try {
+        const res = await fetch('/api/motoristas/me', { credentials: 'same-origin' });
+        const json = await res.json();
+        if (!json.sucesso) {
+          throw new Error(json.erro || 'Não foi possível carregar seus dados.');
+        }
+        const d = json.dados;
+        document.getElementById('nome_completo').value = d.nome_completo || '';
+        document.getElementById('cpf').value = d.cpf || '';
+        document.getElementById('rg').value = d.rg || '';
+        document.getElementById('data_nascimento').value = d.data_nascimento || '';
+        document.getElementById('email').value = d.email || '';
+        document.getElementById('telefone').value = d.telefone || '';
+        document.getElementById('whatsapp').value = d.whatsapp || '';
+        document.getElementById('numero_cnh').value = d.numero_cnh || '';
+        document.getElementById('categoria_cnh').value = d.categoria_cnh || '';
+        document.getElementById('ear').checked = d.ear === 1;
+        document.getElementById('validade_cnh').value = d.validade_cnh || '';
+        document.getElementById('cidade').value = d.cidade || '';
+        document.getElementById('estado').value = d.estado || '';
+        document.getElementById('endereco').value = d.endereco || '';
+        document.getElementById('cep').value = d.cep || '';
+        document.getElementById('apps_que_usa').value = d.apps_que_usa || '';
+      } catch (err) {
+        const msg = document.getElementById('msg-erro');
+        msg.textContent = err.message;
+        msg.style.display = 'block';
+      }
+    }
+
+    document.getElementById('form-motorista').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const msgErro = document.getElementById('msg-erro');
+      const msgOk = document.getElementById('msg-sucesso');
+      msgErro.style.display = 'none';
+      msgOk.style.display = 'none';
+
+      const dados = {
+        nome_completo: document.getElementById('nome_completo').value.trim(),
+        cpf: document.getElementById('cpf').value.trim(),
+        rg: document.getElementById('rg').value.trim(),
+        data_nascimento: document.getElementById('data_nascimento').value,
+        email: document.getElementById('email').value.trim(),
+        telefone: document.getElementById('telefone').value.trim(),
+        whatsapp: document.getElementById('whatsapp').value.trim(),
+        numero_cnh: document.getElementById('numero_cnh').value.trim(),
+        categoria_cnh: document.getElementById('categoria_cnh').value.trim(),
+        ear: document.getElementById('ear').checked ? 'sim' : 'nao',
+        validade_cnh: document.getElementById('validade_cnh').value,
+        cidade: document.getElementById('cidade').value.trim(),
+        estado: document.getElementById('estado').value.trim(),
+        endereco: document.getElementById('endereco').value.trim(),
+        cep: document.getElementById('cep').value.trim(),
+        apps_que_usa: document.getElementById('apps_que_usa').value.trim()
+      };
+
+      try {
+        const res = await fetch('/api/motoristas/me', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dados),
+          credentials: 'same-origin'
+        });
+        const json = await res.json();
+        if (!json.sucesso) {
+          throw new Error(json.erro || 'Erro ao salvar alterações.');
+        }
+        msgOk.textContent = json.mensagem || 'Cadastro atualizado com sucesso.';
+        msgOk.style.display = 'block';
+      } catch (err) {
+        msgErro.textContent = err.message;
+        msgErro.style.display = 'block';
+      }
+    });
+
+    document.getElementById('btn-excluir').addEventListener('click', async function () {
+      const confirmar = window.confirm('Tem certeza de que deseja excluir sua conta? Esta ação não pode ser desfeita.');
+      if (!confirmar) return;
+
+      try {
+        const res = await fetch('/api/motoristas/me', {
+          method: 'DELETE',
+          credentials: 'same-origin'
+        });
+        const json = await res.json();
+        if (!json.sucesso) {
+          throw new Error(json.erro || 'Erro ao excluir conta.');
+        }
+        alert(json.mensagem || 'Conta excluída.');
+        window.location.href = '/?conta=motorista_excluida';
+      } catch (err) {
+        const msg = document.getElementById('msg-erro');
+        msg.textContent = err.message;
+        msg.style.display = 'block';
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', carregarDados);
+  </script>
+</body>
+</html>
+

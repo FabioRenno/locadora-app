@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meu cadastro de Locador - Locadora App</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="cabecalho">
+    <h1>Meu cadastro de Locador</h1>
+    <p class="subtitulo">Atualize seus dados de contato e endereço</p>
+  </header>
+
+  <main class="conteudo">
+    <p class="voltar">
+      <a href="/painel-locador">← Voltar para o painel</a>
+    </p>
+
+    <form id="form-locador" class="formulario formulario-locador">
+      <fieldset class="grupo-campos">
+        <legend>Dados da empresa</legend>
+
+        <div class="campo">
+          <label for="razao_social">Razão Social *</label>
+          <input type="text" id="razao_social" name="razao_social" required maxlength="150">
+        </div>
+
+        <div class="campo">
+          <label for="nome_fantasia">Nome Fantasia</label>
+          <input type="text" id="nome_fantasia" name="nome_fantasia" maxlength="150">
+        </div>
+
+        <div class="campo">
+          <label for="cnpj">CNPJ</label>
+          <input type="text" id="cnpj" name="cnpj" disabled>
+          <small>O CNPJ não pode ser alterado por aqui.</small>
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo-campos">
+        <legend>Contato</legend>
+
+        <div class="campo">
+          <label for="email">Email *</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+
+        <div class="campo">
+          <label for="telefone">Telefone *</label>
+          <input type="tel" id="telefone" name="telefone" required>
+        </div>
+
+        <div class="campo">
+          <label for="whatsapp">WhatsApp *</label>
+          <input type="tel" id="whatsapp" name="whatsapp" required>
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo-campos">
+        <legend>Endereço</legend>
+
+        <div class="campo">
+          <label for="endereco">Endereço completo *</label>
+          <input type="text" id="endereco" name="endereco" required>
+        </div>
+
+        <div class="linha-campos">
+          <div class="campo">
+            <label for="cidade">Cidade *</label>
+            <input type="text" id="cidade" name="cidade" required>
+          </div>
+          <div class="campo">
+            <label for="estado">Estado (UF) *</label>
+            <input type="text" id="estado" name="estado" required maxlength="2">
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="cep">CEP *</label>
+          <input type="text" id="cep" name="cep" required>
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo-campos">
+        <legend>Informações adicionais</legend>
+
+        <div class="campo">
+          <label for="area_atuacao">Área de atuação</label>
+          <input type="text" id="area_atuacao" name="area_atuacao">
+        </div>
+
+        <div class="campo">
+          <label for="horario_atendimento">Horário de atendimento</label>
+          <input type="text" id="horario_atendimento" name="horario_atendimento">
+        </div>
+      </fieldset>
+
+      <div id="msg-erro" class="msg-erro" style="display: none;"></div>
+      <div id="msg-sucesso" class="msg-sucesso" style="display: none;"></div>
+
+      <div class="acoes-formulario">
+        <button type="submit" class="botao-enviar">Salvar alterações</button>
+      </div>
+    </form>
+
+    <section class="secao-perigosa">
+      <h2>Encerrar conta</h2>
+      <p>Se você não deseja mais utilizar o Locadora App, pode desativar sua conta. Seus veículos deixarão de aparecer como disponíveis.</p>
+      <button id="btn-excluir" class="botao botao-perigo">Excluir minha conta</button>
+    </section>
+  </main>
+
+  <script>
+    async function carregarDados() {
+      try {
+        const res = await fetch('/api/locadores/me', { credentials: 'same-origin' });
+        const json = await res.json();
+        if (!json.sucesso) {
+          throw new Error(json.erro || 'Não foi possível carregar seus dados.');
+        }
+        const d = json.dados;
+        document.getElementById('razao_social').value = d.razao_social || '';
+        document.getElementById('nome_fantasia').value = d.nome_fantasia || '';
+        document.getElementById('cnpj').value = d.cnpj || '';
+        document.getElementById('email').value = d.email || '';
+        document.getElementById('telefone').value = d.telefone || '';
+        document.getElementById('whatsapp').value = d.whatsapp || '';
+        document.getElementById('endereco').value = d.endereco || '';
+        document.getElementById('cidade').value = d.cidade || '';
+        document.getElementById('estado').value = d.estado || '';
+        document.getElementById('cep').value = d.cep || '';
+        document.getElementById('area_atuacao').value = d.area_atuacao || '';
+        document.getElementById('horario_atendimento').value = d.horario_atendimento || '';
+      } catch (err) {
+        const msg = document.getElementById('msg-erro');
+        msg.textContent = err.message;
+        msg.style.display = 'block';
+      }
+    }
+
+    document.getElementById('form-locador').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const msgErro = document.getElementById('msg-erro');
+      const msgOk = document.getElementById('msg-sucesso');
+      msgErro.style.display = 'none';
+      msgOk.style.display = 'none';
+
+      const dados = {
+        razao_social: document.getElementById('razao_social').value.trim(),
+        nome_fantasia: document.getElementById('nome_fantasia').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        telefone: document.getElementById('telefone').value.trim(),
+        whatsapp: document.getElementById('whatsapp').value.trim(),
+        endereco: document.getElementById('endereco').value.trim(),
+        cidade: document.getElementById('cidade').value.trim(),
+        estado: document.getElementById('estado').value.trim(),
+        cep: document.getElementById('cep').value.trim(),
+        area_atuacao: document.getElementById('area_atuacao').value.trim(),
+        horario_atendimento: document.getElementById('horario_atendimento').value.trim()
+      };
+
+      try {
+        const res = await fetch('/api/locadores/me', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dados),
+          credentials: 'same-origin'
+        });
+        const json = await res.json();
+        if (!json.sucesso) {
+          throw new Error(json.erro || 'Erro ao salvar alterações.');
+        }
+        msgOk.textContent = json.mensagem || 'Cadastro atualizado com sucesso.';
+        msgOk.style.display = 'block';
+      } catch (err) {
+        msgErro.textContent = err.message;
+        msgErro.style.display = 'block';
+      }
+    });
+
+    document.getElementById('btn-excluir').addEventListener('click', async function () {
+      const confirmar = window.confirm('Tem certeza de que deseja excluir sua conta? Esta ação não pode ser desfeita.');
+      if (!confirmar) return;
+
+      try {
+        const res = await fetch('/api/locadores/me', {
+          method: 'DELETE',
+          credentials: 'same-origin'
+        });
+        const json = await res.json();
+        if (!json.sucesso) {
+          throw new Error(json.erro || 'Erro ao excluir conta.');
+        }
+        alert(json.mensagem || 'Conta excluída.');
+        window.location.href = '/?conta=locador_excluida';
+      } catch (err) {
+        const msg = document.getElementById('msg-erro');
+        msg.textContent = err.message;
+        msg.style.display = 'block';
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', carregarDados);
+  </script>
+</body>
+</html>
+

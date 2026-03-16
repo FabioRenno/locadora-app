@@ -42,6 +42,12 @@ async function initDb() {
     )
   `);
 
+  // Campos de "soft delete" para locadores e motoristas
+  await pool.query(`
+    ALTER TABLE locadores
+    ADD COLUMN IF NOT EXISTS ativo INTEGER NOT NULL DEFAULT 1
+  `);
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS motoristas (
       id SERIAL PRIMARY KEY,
@@ -64,6 +70,11 @@ async function initDb() {
       senha_hash TEXT NOT NULL,
       criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
+  `);
+
+  await pool.query(`
+    ALTER TABLE motoristas
+    ADD COLUMN IF NOT EXISTS ativo INTEGER NOT NULL DEFAULT 1
   `);
 
   await pool.query(`

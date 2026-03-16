@@ -45,7 +45,7 @@ router.post('/api/login', async (req, res) => {
 
     const { pool } = getDb();
     const result = await pool.query(
-      'SELECT id, razao_social, senha_hash FROM locadores WHERE email = $1',
+      'SELECT id, razao_social, senha_hash FROM locadores WHERE email = $1 AND ativo = 1',
       [email.trim()]
     );
     const locador = result.rows[0] || null;
@@ -107,7 +107,7 @@ router.post('/api/login-motorista', async (req, res) => {
 
     const { pool } = getDb();
     const result = await pool.query(
-      'SELECT id, nome_completo, senha_hash FROM motoristas WHERE email = $1',
+      'SELECT id, nome_completo, senha_hash FROM motoristas WHERE email = $1 AND ativo = 1',
       [email.trim()]
     );
     const motorista = result.rows[0] || null;

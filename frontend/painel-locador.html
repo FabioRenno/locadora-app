@@ -9,7 +9,7 @@
 <body>
   <header class="cabecalho cabecalho-painel">
     <h1>Painel do Locador</h1>
-    <p class="subtitulo" id="saudacao">Bem-vindo ao seu painel de controle</p>
+    <p class="subtitulo" id="saudacao">Bem-vindo, Locador</p>
     <p class="sair"><a href="/api/logout">Sair</a></p>
   </header>
 
@@ -30,6 +30,11 @@
         <span class="badge-interesse" id="badge-interesses" style="display: none;"></span>
         <span class="descricao">Motoristas que demonstraram interesse</span>
       </a>
+      <a href="/editar-locador.html" class="botao botao-painel">
+        <span class="icone">👤</span>
+        <span>Meu cadastro</span>
+        <span class="descricao">Atualizar dados ou excluir conta</span>
+      </a>
     </nav>
   </main>
 
@@ -39,7 +44,7 @@
         const sessRes = await fetch('/api/session', { credentials: 'same-origin' });
         const sess = await sessRes.json();
         if (sess.logado && sess.tipo === 'locador') {
-          document.getElementById('saudacao').textContent = 'Olá, ' + (sess.nome || 'Locador');
+          document.getElementById('saudacao').textContent = 'Bem-vindo, ' + (sess.nome || 'Locador');
         }
       } catch (e) {}
 

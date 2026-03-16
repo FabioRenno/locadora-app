@@ -60,6 +60,14 @@ app.get('/interesses-motorista.html', requerMotoristaLogado, (req, res) => {
   res.sendFile(path.join(frontendPath, 'interesses-motorista.html'));
 });
 
+app.get('/editar-locador.html', requerLocadorLogado, (req, res) => {
+  res.sendFile(path.join(frontendPath, 'editar-locador.html'));
+});
+
+app.get('/editar-motorista.html', requerMotoristaLogado, (req, res) => {
+  res.sendFile(path.join(frontendPath, 'editar-motorista.html'));
+});
+
 // Arquivos públicos (HTML, CSS, imagens) - por último para não sobrescrever rotas
 app.use(express.static(frontendPath));
 
