@@ -45,6 +45,11 @@
 
         const v = await res.json();
 
+        const manutencaoTexto =
+          v.responsabilidade_manutencao === 'Motorista'
+            ? 'Dividida 50% Locador 50% Motorista'
+            : v.responsabilidade_manutencao;
+
         document.getElementById('titulo-veiculo').textContent = `${v.marca} ${v.modelo} (${v.ano})`;
         document.getElementById('subtitulo-veiculo').textContent = v.locador_nome;
 
@@ -67,7 +72,7 @@
               <h3>Informações</h3>
               <p><strong>Placa:</strong> ${escapeHtml(v.placa)}</p>
               <p><strong>Cor:</strong> ${escapeHtml(v.cor)}</p>
-              <p><strong>Manutenção:</strong> ${escapeHtml(v.responsabilidade_manutencao)}</p>
+              <p><strong>Manutenção:</strong> ${escapeHtml(manutencaoTexto)}</p>
               <p><strong>Local de retirada:</strong> ${escapeHtml(v.local_retirada)}</p>
 
               <h3>Contato (Locador)</h3>
