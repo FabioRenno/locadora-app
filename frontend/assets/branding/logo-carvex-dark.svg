@@ -1,0 +1,22 @@
+<svg width="210" height="72" viewBox="0 0 210 72" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo Carvex fundo escuro">
+  <path d="M 74 18
+           H 50
+           A 22 22 0 0 0 50 54
+           H 74"
+       fill="none"
+       stroke="#ffffff"
+       stroke-width="7"
+       stroke-linecap="round"
+       stroke-linejoin="round"/>
+
+  <circle cx="84" cy="36" r="4.5" fill="#00a3b7"/>
+
+  <text x="94" y="43"
+        font-family="Segoe UI, Arial, sans-serif"
+        font-size="24"
+        font-weight="600"
+        fill="#ffffff"
+        letter-spacing="0.2">
+    Carvex
+  </text>
+</svg>

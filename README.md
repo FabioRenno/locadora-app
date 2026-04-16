@@ -1,4 +1,4 @@
-# Locadora App
+# Carvex
 
 ## TL;DR
 
@@ -20,7 +20,7 @@ pequenos locadores a encontrarem motoristas com mais agilidade, e ajudar
 motoristas a encontrarem veículos disponíveis para locação de forma mais
 clara e organizada.
 
-Hoje o **Locadora App** já possui um **MVP funcional em produção para
+Hoje o **Carvex** já possui um **MVP funcional em produção para
 testes**, validando o fluxo principal do produto.
 
 ------------------------------------------------------------------------
@@ -43,9 +43,16 @@ mudanças.
 
 ------------------------------------------------------------------------
 
+## Marca e identidade visual
+
+-   Guia de marca e decisões de UI: **BRANDING_CARVEX.md**
+-   Arquivos SVG (logo, favicon): **frontend/assets/branding/** (referência nas páginas: `/assets/branding/...`)
+
+------------------------------------------------------------------------
+
 ## Visão do produto
 
-O Locadora App atua como uma ponte entre dois lados:
+O Carvex atua como uma ponte entre dois lados:
 
 -   **Locador**: cria conta, cadastra veículos e acompanha interessados
 -   **Motorista**: cria conta, visualiza veículos disponíveis e
@@ -234,7 +241,7 @@ Ao contribuir com este projeto:
 
 ## Resumo
 
-O **Locadora App** é um marketplace em fase de MVP que conecta:
+O **Carvex** é um marketplace em fase de MVP que conecta:
 
 -   **locadores de veículos**
 -   **motoristas de aplicativo**

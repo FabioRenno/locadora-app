@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel do Motorista - Locadora App</title>
+  <title>Painel do Motorista - Carvex</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="/assets/branding/favicon.svg">
 </head>
 <body>
   <header class="cabecalho cabecalho-painel">
+    <a href="/" class="logo-marca" aria-label="Ir para a página inicial">
+      <img src="/assets/branding/logo-carvex.svg" alt="Carvex">
+    </a>
     <h1>Painel do Motorista</h1>
     <p class="subtitulo" id="saudacao">Bem-vindo, Motorista</p>
-    <p class="sair"><a href="/api/logout">Sair</a></p>
   </header>
 
   <main class="conteudo">
@@ -32,6 +35,10 @@
       </a>
     </nav>
   </main>
+
+  <footer class="rodape-acao">
+    <a href="/api/logout" class="botao-sair-rodape">Sair</a>
+  </footer>
 
   <script>
     async function carregarSaudacaoMotorista() {

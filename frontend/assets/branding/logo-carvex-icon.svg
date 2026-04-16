@@ -1,0 +1,12 @@
+<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Símbolo Carvex">
+  <path d="M 50 18
+           H 30
+           A 18 18 0 0 0 30 54
+           H 50"
+       fill="none"
+       stroke="#0b3b5a"
+       stroke-width="7"
+       stroke-linecap="round"
+       stroke-linejoin="round"/>
+  <circle cx="58" cy="36" r="4.5" fill="#00a3b7"/>
+</svg>

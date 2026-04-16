@@ -1,0 +1,12 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Favicon Carvex">
+  <path d="M 44 16
+           H 28
+           A 16 16 0 0 0 28 48
+           H 44"
+       fill="none"
+       stroke="#0b3b5a"
+       stroke-width="6"
+       stroke-linecap="round"
+       stroke-linejoin="round"/>
+  <circle cx="52" cy="32" r="4" fill="#00a3b7"/>
+</svg>

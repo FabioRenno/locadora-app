@@ -6,12 +6,13 @@
  */
 
 :root {
-  --cor-primaria: #1a5f4a;
-  --cor-primaria-clara: #2d8a6e;
+  --cor-primaria: #0b3b5a;
+  --cor-primaria-clara: #0f4d73;
+  --cor-destaque: #00a3b7;
   --cor-secundaria: #2c3e50;
   --cor-fundo: #f4f6f8;
-  --cor-texto: #333;
-  --cor-texto-claro: #666;
+  --cor-texto: #1f2937;
+  --cor-texto-claro: #6b7280;
   --sombra: 0 4px 12px rgba(0, 0, 0, 0.1);
   --borda-radius: 12px;
 }
@@ -39,10 +40,22 @@ body {
   margin-bottom: 3rem;
 }
 
+.logo-marca {
+  display: inline-block;
+  margin-bottom: 1.35rem;
+}
+
+.logo-marca img {
+  display: block;
+  width: 276px;
+  height: auto;
+}
+
 .cabecalho h1 {
-  font-size: 2.2rem;
+  font-size: 1.75rem;
   color: var(--cor-primaria);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
+  font-weight: 700;
 }
 
 .subtitulo {
@@ -144,36 +157,46 @@ body {
 /* --- Painel --- */
 .cabecalho-painel {
   position: relative;
-  padding-right: 6rem; /* espaço para o botão Sair não encavalar no título */
 }
 
-.sair {
-  position: absolute;
-  top: 0;
-  right: 0;
-  margin: 0;
-  z-index: 1;
+/* Refinamento: nos painéis, o título fica um pouco menor para não competir com a logo. */
+.cabecalho-painel h1 {
+  font-size: 1.5rem;
 }
 
-.sair a {
+.rodape-acao {
+  width: 100%;
+  max-width: 600px;
+  margin-top: 1.25rem;
+  margin-bottom: 0.25rem;
+  display: flex;
+  justify-content: center;
+}
+
+.botao-sair-rodape {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 1rem;
-  font-size: 0.95rem;
+  justify-content: center;
+  padding: 0.38rem 0.9rem;
+  font-size: 0.84rem;
   font-weight: 500;
-  color: var(--cor-primaria);
-  background: rgba(26, 95, 74, 0.1);
-  border: 1px solid rgba(26, 95, 74, 0.3);
-  border-radius: 8px;
+  color: var(--cor-texto-claro);
+  background: rgba(44, 62, 80, 0.05);
+  border: 1px solid rgba(44, 62, 80, 0.18);
+  border-radius: 999px;
   text-decoration: none;
   transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
-.sair a:hover {
-  background: var(--cor-primaria);
-  color: white;
-  border-color: var(--cor-primaria);
+.botao-sair-rodape:hover {
+  background: rgba(11, 59, 90, 0.1);
+  color: var(--cor-primaria);
+  border-color: rgba(11, 59, 90, 0.35);
+}
+
+.botao-sair-rodape:focus-visible {
+  outline: 2px solid var(--cor-destaque);
+  outline-offset: 2px;
 }
 
 .resumo-painel {
@@ -458,7 +481,7 @@ body {
 }
 
 .botao-enviar:hover {
-  background: var(--cor-primaria-clara);
+  background: var(--cor-destaque);
 }
 
 /* Responsividade: celular e telas pequenas */
@@ -472,7 +495,15 @@ body {
   }
 
   .cabecalho h1 {
-    font-size: 1.7rem;
+    font-size: 1.4rem;
+  }
+
+  .logo-marca img {
+    width: 228px;
+  }
+
+  .cabecalho-painel h1 {
+    font-size: 1.25rem;
   }
 }
 
@@ -621,13 +652,13 @@ body {
 
 .botao-ver {
   background: white;
-  color: var(--cor-primaria) !important;
-  border: 2px solid var(--cor-primaria);
+  color: var(--cor-destaque) !important;
+  border: 2px solid var(--cor-destaque);
 }
 
 .botao-ver:hover {
-  background: rgba(26, 95, 74, 0.08);
-  border-color: var(--cor-primaria);
+  background: rgba(0, 163, 183, 0.08);
+  border-color: var(--cor-destaque);
 }
 
 .card-interesse-motorista-motivo {

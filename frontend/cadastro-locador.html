@@ -3,11 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cadastro de Locador - Locadora App</title>
+  <title>Cadastro de Locador - Carvex</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="/assets/branding/favicon.svg">
 </head>
 <body>
   <header class="cabecalho">
+    <a href="/" class="logo-marca" aria-label="Ir para a página inicial">
+      <img src="/assets/branding/logo-carvex.svg" alt="Carvex">
+    </a>
     <h1>Cadastro de Locador</h1>
     <p class="subtitulo">Preencha os dados da sua empresa para publicar veículos</p>
   </header>
@@ -177,6 +181,7 @@
       </fieldset>
 
       <div id="msg-erro-senha" class="msg-erro" style="display: none;"></div>
+      <div id="msg-erro-backend" class="msg-erro" style="display: none;"></div>
 
       <div class="acoes-formulario">
         <button type="submit" class="botao-enviar">Cadastrar</button>
@@ -185,6 +190,14 @@
   </main>
 
   <script>
+    const params = new URLSearchParams(window.location.search);
+    const erroBackend = params.get('erro');
+    const msgErroBackendEl = document.getElementById('msg-erro-backend');
+    if (erroBackend && msgErroBackendEl) {
+      msgErroBackendEl.textContent = erroBackend;
+      msgErroBackendEl.style.display = 'block';
+    }
+
     function configurarBuscaCepLocadorCadastro() {
       const cepInput = document.getElementById('cep');
       const cidadeInput = document.getElementById('cidade');

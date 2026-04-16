@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cadastrar/Editar Veículo - Locadora App</title>
+  <title>Cadastrar/Editar Veículo - Carvex</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="/assets/branding/favicon.svg">
 </head>
 <body>
   <header class="cabecalho cabecalho-painel">
+    <a href="/" class="logo-marca" aria-label="Ir para a página inicial">
+      <img src="/assets/branding/logo-carvex.svg" alt="Carvex">
+    </a>
     <h1 id="titulo-pagina">Cadastrar Veículo</h1>
     <p class="subtitulo">Preencha os dados do veículo para publicar</p>
-    <p class="sair"><a href="/api/logout">Sair</a></p>
   </header>
 
   <main class="conteudo">
@@ -52,16 +55,16 @@
         <div class="linha-campos">
           <div class="campo">
             <label for="preco_diaria">Preço diária</label>
-            <input type="number" id="preco_diaria" name="preco_diaria" step="0.01" min="0" placeholder="Opcional">
+            <input type="text" id="preco_diaria" name="preco_diaria" inputmode="decimal" placeholder="Opcional (ex: R$ 100,00)">
           </div>
           <div class="campo">
             <label for="preco_semanal">Preço semanal *</label>
-            <input type="number" id="preco_semanal" name="preco_semanal" required step="0.01" min="0" placeholder="Ex: 500">
+            <input type="text" id="preco_semanal" name="preco_semanal" required inputmode="decimal" placeholder="Ex: R$ 500,00">
           </div>
         </div>
         <div class="campo">
           <label for="valor_caucao">Valor caução (depósito de segurança) *</label>
-          <input type="number" id="valor_caucao" name="valor_caucao" required step="0.01" min="0" placeholder="Ex: 1000">
+          <input type="text" id="valor_caucao" name="valor_caucao" required inputmode="decimal" placeholder="Ex: R$ 1.000,00">
         </div>
       </fieldset>
 
@@ -105,6 +108,10 @@
     </form>
   </main>
 
+  <footer class="rodape-acao">
+    <a href="/api/logout" class="botao-sair-rodape">Sair</a>
+  </footer>
+
   <script src="js/validacoes.js"></script>
   <script>
     const params = new URLSearchParams(window.location.search);
@@ -136,9 +143,12 @@
         document.getElementById('ano').value = veiculo.ano;
         document.getElementById('placa').value = veiculo.placa;
         document.getElementById('cor').value = veiculo.cor;
-        document.getElementById('preco_diaria').value = veiculo.preco_diaria || '';
-        document.getElementById('preco_semanal').value = veiculo.preco_semanal;
-        document.getElementById('valor_caucao').value = veiculo.valor_caucao;
+        document.getElementById('preco_diaria').value =
+          veiculo.preco_diaria !== null && veiculo.preco_diaria !== undefined
+            ? `R$ ${formatarMoedaParaInput(veiculo.preco_diaria)}`
+            : '';
+        document.getElementById('preco_semanal').value = `R$ ${formatarMoedaParaInput(veiculo.preco_semanal)}`;
+        document.getElementById('valor_caucao').value = `R$ ${formatarMoedaParaInput(veiculo.valor_caucao)}`;
         document.getElementById('responsabilidade_manutencao').value = veiculo.responsabilidade_manutencao;
         document.getElementById('local_retirada').value = veiculo.local_retirada;
         document.getElementById('foto_url').value = veiculo.foto_url || '';
@@ -179,15 +189,20 @@
       const btn = document.getElementById('btn-submit');
       btn.disabled = true;
 
+      const precoDiariaInput = document.getElementById('preco_diaria').value;
+      const precoSemanalInput = document.getElementById('preco_semanal').value;
+      const valorCaucaoInput = document.getElementById('valor_caucao').value;
+
       const dados = {
         marca: document.getElementById('marca').value.trim(),
         modelo: document.getElementById('modelo').value.trim(),
         ano: document.getElementById('ano').value,
         placa: document.getElementById('placa').value.trim().toUpperCase(),
         cor: document.getElementById('cor').value.trim(),
-        preco_diaria: document.getElementById('preco_diaria').value || null,
-        preco_semanal: document.getElementById('preco_semanal').value,
-        valor_caucao: document.getElementById('valor_caucao').value,
+        // Envia números "puros" para o backend (evita parse errado com vírgula/ponto).
+        preco_diaria: parsearMoedaEntrada(precoDiariaInput) || null,
+        preco_semanal: parsearMoedaEntrada(precoSemanalInput),
+        valor_caucao: parsearMoedaEntrada(valorCaucaoInput),
         responsabilidade_manutencao: document.getElementById('responsabilidade_manutencao').value,
         local_retirada: document.getElementById('local_retirada').value.trim(),
         foto_url: document.getElementById('foto_url').value.trim() || null,
@@ -227,6 +242,35 @@
       msg.textContent = texto;
       msg.className = tipo === 'sucesso' ? 'msg-sucesso' : 'msg-erro';
       msg.classList.remove('msg-escondida');
+    }
+
+    // Exibe valores no padrão BR (milhar com '.', decimal com ',') sem depender do 'type=number'.
+    function formatarMoedaParaInput(n) {
+      const num = Number(n);
+      if (!Number.isFinite(num)) return '';
+      return num.toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    // Converte valores digitados/exibidos em pt-BR (ex: "R$ 1.500,50") para número.
+    // Retorna '' quando não consegue converter, para o backend bloquear campos obrigatórios.
+    function parsearMoedaEntrada(valor) {
+      if (valor === null || valor === undefined) return '';
+      const s = String(valor).trim();
+      if (!s) return '';
+
+      // Remove "R$", espaços e outros símbolos simples.
+      const semMoeda = s.replace(/[R$\s]/g, '');
+
+      // Se tem vírgula, assumimos formato pt-BR: "." como milhar e "," como decimal.
+      const normalizado = semMoeda.includes(',')
+        ? semMoeda.replace(/\./g, '').replace(',', '.')
+        : semMoeda;
+
+      const num = Number(normalizado);
+      return Number.isFinite(num) ? num : '';
     }
   </script>
 </body>

@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meus Veículos - Locadora App</title>
+  <title>Meus Veículos - Carvex</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="/assets/branding/favicon.svg">
 </head>
 <body>
   <header class="cabecalho cabecalho-painel">
+    <a href="/" class="logo-marca" aria-label="Ir para a página inicial">
+      <img src="/assets/branding/logo-carvex.svg" alt="Carvex">
+    </a>
     <h1>Meus Veículos</h1>
     <p class="subtitulo">Gerencie seus anúncios de locação</p>
-    <p class="sair"><a href="/api/logout">Sair</a></p>
   </header>
 
   <main class="conteudo">
@@ -24,6 +27,10 @@
       <p class="carregando">Carregando...</p>
     </div>
   </main>
+
+  <footer class="rodape-acao">
+    <a href="/api/logout" class="botao-sair-rodape">Sair</a>
+  </footer>
 
   <script>
     // Busca os veículos do locador logado na API
