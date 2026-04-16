@@ -2,7 +2,7 @@
 
 ## Nome do projeto
 
-**Locadora App**
+**Carvex**
 
 ------------------------------------------------------------------------
 
@@ -20,7 +20,7 @@ motoristas adequados com constância, enquanto motoristas de aplicativo
 nem sempre encontram veículos disponíveis de forma organizada, visível e
 prática.
 
-O Locadora App surge para reduzir esse atrito, criando um ponto de
+O Carvex surge para reduzir esse atrito, criando um ponto de
 encontro mais claro entre oferta e interesse.
 
 ------------------------------------------------------------------------
@@ -282,7 +282,7 @@ Algumas linhas prováveis de evolução:
 
 Toda mudança deve responder bem a esta pergunta:
 
-**Isso ajuda o Locadora App a ficar mais útil, mais claro e mais fácil
+**Isso ajuda o Carvex a ficar mais útil, mais claro e mais fácil
 de evoluir sem complicar o MVP?**
 
 Se não ajudar claramente, provavelmente não é a mudança certa agora.

@@ -1,4 +1,4 @@
-# Regras de Trabalho para IA --- Locadora App
+# Regras de Trabalho para IA --- Carvex
 
 Estas regras orientam qualquer IA trabalhando neste repositório.
 
@@ -141,7 +141,7 @@ Formato ideal:
 
 ## 9. Prioridade atual do projeto
 
-A prioridade do Locadora App neste estágio é:
+A prioridade do Carvex neste estágio é:
 
 -   consolidar o MVP
 -   reduzir bugs

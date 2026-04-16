@@ -37,19 +37,23 @@ router.post('/', async (req, res) => {
       placa // Adicionando campo placa caso exista na requisição
     } = req.body;
 
+    function redirecionarComErro(mensagem) {
+      return res.redirect(`/cadastro-locador.html?erro=${encodeURIComponent(mensagem)}`);
+    }
+
     // Checa campos obrigatórios (adicionando placa caso seja obrigatória)
     if (!razao_social || !cnpj || !email || !telefone || !whatsapp || !endereco || !cidade || !estado || !cep || !senha /*|| !placa*/) {
-      return res.status(400).send('Preencha todos os campos obrigatórios.');
+      return redirecionarComErro('Preencha todos os campos obrigatórios.');
     }
 
     // Validação de e-mail
     if (!validarEmail(email)) {
-      return res.status(400).json({ sucesso: false, erro: 'E-mail inválido.' });
+      return redirecionarComErro('E-mail inválido.');
     }
 
     // Validação de placa, se campo existir na requisição (modifique a obrigatoriedade conforme necessário)
     if (placa && !validarPlaca(placa)) {
-      return res.status(400).send('Placa inválida.');
+      return redirecionarComErro('Placa inválida.');
   }
 
     const senha_hash = hashSenha(senha);
@@ -78,10 +82,10 @@ router.post('/', async (req, res) => {
     res.redirect('/?cadastro=ok');
   } catch (err) {
     if (err.code === '23505') {
-      return res.status(201).json({ sucesso: true, mensagem: 'Cadastro realizado com sucesso!' });
+      return res.redirect(`/cadastro-locador.html?erro=${encodeURIComponent('Este CNPJ ou dados já estão cadastrados. Tente novamente com outros dados.')}`);
     }
     console.error('Erro ao cadastrar locador:', err);
-    res.status(500).send('Erro ao cadastrar. Tente novamente.');
+    res.redirect(`/cadastro-locador.html?erro=${encodeURIComponent('Erro ao cadastrar. Tente novamente mais tarde.')}`);
   }
 });
 
@@ -196,9 +200,16 @@ router.delete('/me', async (req, res) => {
     await pool.query('UPDATE locadores SET ativo = 0 WHERE id = $1', [locadorId]);
     // Deixa veículos indisponíveis
     await pool.query('UPDATE veiculos SET disponivel = 0 WHERE locador_id = $1', [locadorId]);
+    // Remove interesses associados aos veículos do locador (reduz ruído e evita dados antigos no painel)
+    await pool.query(`
+      DELETE FROM interesses
+      USING veiculos
+      WHERE interesses.veiculo_id = veiculos.id
+        AND veiculos.locador_id = $1
+    `, [locadorId]);
 
     req.session.destroy(() => {
-      res.json({ sucesso: true, mensagem: 'Sua conta foi desativada. Obrigado por ter utilizado o Locadora App.' });
+      res.json({ sucesso: true, mensagem: 'Sua conta foi desativada. Obrigado por ter utilizado o Carvex.' });
     });
   } catch (err) {
     console.error('Erro ao desativar conta de locador:', err);

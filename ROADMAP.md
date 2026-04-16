@@ -1,6 +1,6 @@
 # ROADMAP.md
 
-# Roadmap --- Locadora App
+# Roadmap --- Carvex
 
 Este roadmap organiza a evolução do projeto de forma prática,
 respeitando o estágio atual do produto: **MVP funcional em produção para
@@ -31,7 +31,7 @@ desenvolvimento.
 
 ## Estado atual
 
-O Locadora App já possui:
+O Carvex já possui:
 
 -   cadastro de locador
 -   cadastro de motorista
@@ -272,7 +272,7 @@ O MVP estará mais maduro quando:
 
 # Regra final do roadmap
 
-O Locadora App deve evoluir de forma **simples, funcional e orientada
+O Carvex deve evoluir de forma **simples, funcional e orientada
 por realidade**.
 
 Toda nova etapa deve reforçar três coisas:

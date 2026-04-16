@@ -196,7 +196,7 @@ router.delete('/me', async (req, res) => {
     await pool.query('DELETE FROM interesses WHERE motorista_id = $1', [motoristaId]);
 
     req.session.destroy(() => {
-      res.json({ sucesso: true, mensagem: 'Sua conta foi desativada. Obrigado por ter utilizado o Locadora App.' });
+      res.json({ sucesso: true, mensagem: 'Sua conta foi desativada. Obrigado por ter utilizado o Carvex.' });
     });
   } catch (err) {
     console.error('Erro ao desativar conta de motorista:', err);

@@ -1,4 +1,4 @@
-# AI Entrypoint --- Locadora App
+# AI Entrypoint --- Carvex
 
 Este arquivo serve como ponto de entrada para qualquer IA que esteja
 trabalhando neste repositório.
@@ -27,7 +27,7 @@ Se você é uma IA analisando este repositório:
 
 # Sobre o projeto
 
-O Locadora App é um marketplace que conecta:
+O Carvex é um marketplace que conecta:
 
 -   locadores de veículos
 -   motoristas de aplicativo

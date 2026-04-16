@@ -1,5 +1,5 @@
 /**
- * Utilitários de validação para o sistema Locadora App.
+ * Utilitários de validação para o sistema Carvex.
  *
  * Este arquivo contém funções simples usando Expressões Regulares (Regex) e
  * manipulação de strings para garantir que os dados enviados estejam no formato correto.

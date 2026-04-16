@@ -13,11 +13,11 @@ Somente depois de entender o contexto completo do projeto sugira mudanças ou me
 
 ---
 
-# AI Guide — Locadora App
+# AI Guide — Carvex
 
 ## Sobre o projeto
 
-O **Locadora App** é um marketplace que conecta:
+O **Carvex** é um marketplace que conecta:
 
 - locadores de veículos
 - motoristas de aplicativo
@@ -67,7 +67,7 @@ Evitar:
 
 ## Filosofia de evolução
 
-O Locadora App está sendo construído com foco em:
+O Carvex está sendo construído com foco em:
 
 - validação real de produto
 - evolução incremental

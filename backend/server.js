@@ -2,7 +2,7 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 /**
- * Servidor principal do sistema Locadora App
+ * Servidor principal do sistema Carvex
  *
  * O que este arquivo faz?
  * 1. Inicializa o banco PostgreSQL (Neon, Render, Railway, etc.)
@@ -12,6 +12,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
  */
 
 const express = require('express');
+const crypto = require('crypto');
 const session = require('express-session');
 const { initDb } = require('./db');
 const locadoresRoutes = require('./routes/locadores');
@@ -23,6 +24,16 @@ const authRoutes = require('./routes/auth');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const frontendPath = path.join(__dirname, '..', 'frontend');
+const isProduction = process.env.NODE_ENV === 'production';
+
+let sessionSecret = process.env.SESSION_SECRET;
+if (!sessionSecret) {
+  if (isProduction) {
+    throw new Error('SESSION_SECRET precisa estar configurada em produção.');
+  }
+  // Para dev: cria uma chave aleatória a cada boot, evitando um segredo fixo.
+  sessionSecret = crypto.randomBytes(32).toString('hex');
+}
 
 // Permite ler dados do corpo das requisições (formulários e JSON)
 app.use(express.urlencoded({ extended: true }));
@@ -30,10 +41,15 @@ app.use(express.json());
 
 // Sessões: "lembra" que o usuário está logado entre as páginas
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'locadora-app-segredo-2025',
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000 } // 24 horas
+  cookie: {
+    maxAge: 24 * 60 * 60 * 1000, // 24 horas
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: isProduction
+  }
 }));
 
 // Rotas de autenticação (login, logout, painel)
@@ -81,7 +97,7 @@ app.use('/api/interesses', interessesRoutes);
 async function iniciar() {
   await initDb();
   app.listen(PORT, () => {
-    console.log(`\n  Locadora App rodando em http://localhost:${PORT}\n`);
+    console.log(`\n  Carvex rodando em http://localhost:${PORT}\n`);
   });
 }
 

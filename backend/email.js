@@ -43,9 +43,9 @@ async function enviarEmailRecuperacao(para, token, tipo) {
   const link = `${baseUrl}/${pagRedefinir}?token=${encodeURIComponent(token)}`;
   const painel = tipo === 'locador' ? 'painel do locador' : 'painel do motorista';
 
-  const assunto = 'Recuperação de senha - Locadora App';
+  const assunto = 'Recuperação de senha - Carvex';
   const texto = `
-Você solicitou a recuperação de senha no Locadora App.
+Você solicitou a recuperação de senha no Carvex.
 
 Para definir uma nova senha, acesse o link abaixo (válido por 2 horas):
 
