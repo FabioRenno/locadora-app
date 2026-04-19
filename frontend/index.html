@@ -7,47 +7,101 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" type="image/svg+xml" href="/assets/branding/favicon.svg">
 </head>
-<body>
-  <header class="cabecalho">
-    <a href="/" class="logo-marca" aria-label="Ir para a página inicial">
-      <img src="/assets/branding/logo-carvex.svg" alt="Carvex">
-    </a>
-    <div id="usuario-logado" class="usuario-logado" style="display: none;">
-      <span class="usuario-info">Logado como: <strong id="usuario-nome"></strong> (<span id="usuario-tipo"></span>)</span>
-      <a href="/api/logout" class="usuario-sair">Sair</a>
+<body class="pagina-inicial">
+  <header class="cabecalho-site">
+    <div class="cabecalho-site-inner">
+      <a href="/" class="logo-marca logo-marca--site" aria-label="Ir para a página inicial">
+        <img src="/assets/branding/logo-carvex.svg" alt="Carvex">
+      </a>
+      <nav id="cabecalho-visitante" class="cabecalho-site-nav" aria-label="Acesso à conta">
+        <div class="cabecalho-site-grupo" role="group" aria-label="Entrar">
+          <span class="cabecalho-site-grupo-tit">Entrar</span>
+          <a href="/login-locador" class="cabecalho-site-link">Locador</a>
+          <a href="/login-motorista" class="cabecalho-site-link">Motorista</a>
+        </div>
+        <div class="cabecalho-site-grupo" role="group" aria-label="Criar conta">
+          <span class="cabecalho-site-grupo-tit">Criar conta</span>
+          <a href="/cadastro-locador.html" class="cabecalho-site-link">Locador</a>
+          <a href="/cadastro-motorista.html" class="cabecalho-site-link">Motorista</a>
+        </div>
+      </nav>
+      <div id="cabecalho-logado" class="cabecalho-site-logado" style="display: none;" hidden>
+        <span class="cabecalho-site-logado-nome">Olá, <strong id="usuario-nome"></strong></span>
+        <a id="link-painel-cabecalho" href="/painel-locador" class="cabecalho-site-btn-painel">Meu painel</a>
+        <a href="/api/logout" class="cabecalho-site-sair">Sair</a>
+      </div>
     </div>
-    <p class="subtitulo">Conectando locadores e motoristas de aplicativo</p>
   </header>
 
-  <main class="conteudo">
-    <div id="msg-sucesso" class="msg-sucesso" style="display: none;"></div>
-    <section class="chamada">
-      <p>O que você procura?</p>
-    </section>
+  <main class="principal-landing">
+    <div class="principal-landing-inner">
+      <div id="msg-sucesso" class="msg-sucesso msg-landing" style="display: none;"></div>
 
-    <nav class="botoes-acao">
-      <a href="/login-locador" class="botao botao-locador">
-        <span class="icone">🏢</span>
-        <span>Sou Locador</span>
-        <span class="descricao">Entrar ou criar conta</span>
-      </a>
-      
-      <a href="/login-motorista" class="botao botao-motorista">
-        <span class="icone">🚗</span>
-        <span>Sou Motorista</span>
-        <span class="descricao">Entrar ou criar conta para encontrar veículos</span>
-      </a>
-      
-      <a href="/veiculos.html" class="botao botao-ver">
-        <span class="icone">🔍</span>
-        <span>Ver Veículos</span>
-        <span class="descricao">Explorar anúncios disponíveis</span>
-      </a>
-    </nav>
+      <section class="hero-landing" aria-labelledby="titulo-hero">
+        <h1 id="titulo-hero" class="hero-landing-titulo">Encontre ou anuncie veículos para trabalhar com aplicativos</h1>
+        <p class="hero-landing-sub">A Carvex conecta locadores e motoristas com mais clareza, organização e confiança.</p>
+        <div id="hero-logado" class="hero-landing-logado" style="display: none;" hidden>
+          <p class="hero-landing-logado-texto">Você já está com a sessão aberta neste dispositivo.</p>
+          <a id="link-painel-hero" href="/painel-locador" class="botao-landing botao-landing--primario">Ir para o painel</a>
+        </div>
+        <div id="hero-visitante-acoes" class="hero-landing-acoes">
+          <!-- Locador: cadastro é o primeiro passo para publicar; quem já tem conta usa «Entrar» no topo. -->
+          <a href="/cadastro-locador.html" class="botao-landing botao-landing--primario">Sou locador</a>
+          <!-- Motorista: listagem pública; cadastro e login ficam no topo. -->
+          <a href="/veiculos.html" class="botao-landing botao-landing--destaque">Sou motorista</a>
+        </div>
+      </section>
+
+      <section class="secao-landing" aria-labelledby="titulo-como">
+        <h2 id="titulo-como" class="secao-landing-titulo">Como funciona</h2>
+        <div class="grid-como-funciona">
+          <article class="card-landing">
+            <h3 class="card-landing-papel">Locador</h3>
+            <ol class="card-landing-passos">
+              <li>Cadastre seu veículo</li>
+              <li>Receba interessados</li>
+              <li>Acompanhe no painel</li>
+            </ol>
+          </article>
+          <article class="card-landing">
+            <h3 class="card-landing-papel">Motorista</h3>
+            <ol class="card-landing-passos">
+              <li>Veja veículos disponíveis</li>
+              <li>Demonstre interesse</li>
+              <li>Encontre oportunidade</li>
+            </ol>
+          </article>
+        </div>
+      </section>
+
+      <section class="secao-landing secao-landing--valor" aria-labelledby="titulo-valor">
+        <h2 id="titulo-valor" class="secao-landing-titulo">Por que usar a Carvex</h2>
+        <ul class="lista-valor">
+          <li class="item-valor">Mais clareza no contato</li>
+          <li class="item-valor">Mais organização no processo</li>
+          <li class="item-valor">Mais facilidade para conectar oferta e interesse</li>
+        </ul>
+      </section>
+
+      <section class="secao-landing secao-landing--cta" aria-labelledby="titulo-cta">
+        <h2 id="titulo-cta" class="secao-landing-titulo secao-landing-titulo--cta">Pronto para começar?</h2>
+        <div class="hero-landing-acoes hero-landing-acoes--final">
+          <a href="/cadastro-locador.html" class="botao-landing botao-landing--primario">Anunciar veículo</a>
+          <a href="/veiculos.html" class="botao-landing botao-landing--destaque">Encontrar veículo</a>
+        </div>
+      </section>
+    </div>
   </main>
 
-  <footer class="rodape">
-    <p>Oferta e demanda no mesmo lugar.</p>
+  <footer class="rodape-site">
+    <p class="rodape-site-marca"><strong>Carvex</strong> — locação para motoristas de aplicativo, com passos simples.</p>
+    <nav class="rodape-site-links" aria-label="Links úteis">
+      <a href="/veiculos.html">Veículos disponíveis</a>
+      <a href="/cadastro-locador.html">Cadastro locador</a>
+      <a href="/cadastro-motorista.html">Cadastro motorista</a>
+      <a href="/login-locador">Entrar (locador)</a>
+      <a href="/login-motorista">Entrar (motorista)</a>
+    </nav>
   </footer>
 
   <script>
@@ -55,11 +109,24 @@
       try {
         const res = await fetch('/api/session', { credentials: 'same-origin' });
         const sess = await res.json();
-        const bar = document.getElementById('usuario-logado');
+        const navVisitante = document.getElementById('cabecalho-visitante');
+        const navLogado = document.getElementById('cabecalho-logado');
+        const heroVisitanteAcoes = document.getElementById('hero-visitante-acoes');
+        const heroLogado = document.getElementById('hero-logado');
+        const linkCabecalho = document.getElementById('link-painel-cabecalho');
+        const linkHero = document.getElementById('link-painel-hero');
+
         if (sess.logado && sess.tipo) {
-          document.getElementById('usuario-nome').textContent = sess.nome || sess.tipo;
-          document.getElementById('usuario-tipo').textContent = sess.tipo === 'locador' ? 'Locador' : 'Motorista';
-          bar.style.display = 'flex';
+          document.getElementById('usuario-nome').textContent = sess.nome || (sess.tipo === 'locador' ? 'Locador' : 'Motorista');
+          const painel = sess.tipo === 'locador' ? '/painel-locador' : '/painel-motorista';
+          linkCabecalho.href = painel;
+          linkHero.href = painel;
+          navVisitante.style.display = 'none';
+          navLogado.style.display = 'flex';
+          navLogado.removeAttribute('hidden');
+          heroVisitanteAcoes.style.display = 'none';
+          heroLogado.style.display = 'block';
+          heroLogado.removeAttribute('hidden');
         }
       } catch (err) {
         console.error('Erro ao verificar sessão:', err);
@@ -68,13 +135,21 @@
     carregarSessao();
 
     const params = new URLSearchParams(window.location.search);
-    const cadastro = params.get('cadastro');
     const msg = document.getElementById('msg-sucesso');
+    const cadastro = params.get('cadastro');
+    const conta = params.get('conta');
+
     if (cadastro === 'ok') {
-      msg.innerHTML = '✓ Cadastro de locador realizado! <a href="/login-locador">Entrar</a>';
+      msg.innerHTML = 'Cadastro de locador realizado com sucesso. <a href="/login-locador">Entrar na conta</a>';
       msg.style.display = 'block';
     } else if (cadastro === 'motorista') {
-      msg.innerHTML = '✓ Cadastro de motorista realizado! <a href="/login-motorista">Entrar</a>';
+      msg.innerHTML = 'Cadastro de motorista realizado com sucesso. <a href="/login-motorista">Entrar na conta</a>';
+      msg.style.display = 'block';
+    } else if (conta === 'locador_excluida') {
+      msg.innerHTML = 'Sua conta de locador foi encerrada. Se quiser voltar, crie um novo cadastro.';
+      msg.style.display = 'block';
+    } else if (conta === 'motorista_excluida') {
+      msg.innerHTML = 'Sua conta de motorista foi encerrada. Se quiser voltar, crie um novo cadastro.';
       msg.style.display = 'block';
     }
   </script>
