@@ -26,6 +26,12 @@ const PORT = process.env.PORT || 3000;
 const frontendPath = path.join(__dirname, '..', 'frontend');
 const isProduction = process.env.NODE_ENV === 'production';
 
+if (isProduction) {
+  // Em provedores como Render, o HTTPS termina no proxy.
+  // Sem "trust proxy", cookies "secure" podem não ser gravados.
+  app.set('trust proxy', 1);
+}
+
 let sessionSecret = process.env.SESSION_SECRET;
 if (!sessionSecret) {
   if (isProduction) {
